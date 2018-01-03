@@ -1,2 +1,4 @@
 # gate-plugin
-Add gate development support to your favorite editor
+Add [gate](https://gate.ac.uk/) development support to your favorite editor
+
+**Note: Only VS Code syntax colorization supported now**
