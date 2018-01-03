@@ -1,0 +1,31 @@
+{
+    "name": "gate-plugin",
+    "displayName": "gate-plugin",
+    "description": "Add gate development support to your favorite editor",
+    "version": "0.0.1",
+    "author": "Sergiy Samborskiy <salterok@gmail.com>",
+    "publisher": "Sergiy Samborskiy <salterok@gmail.com>",
+    "engines": {
+        "vscode": "^1.19.0"
+    },
+    "license": "MIT",
+    "categories": [
+        "Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "jape",
+            "aliases": ["Jape", "jape"],
+            "extensions": [".jape"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "jape",
+            "scopeName": "source.jape",
+            "path": "./syntaxes/jape.tmLanguage.json",
+            "embeddedLanguages": {
+                "source.java": "java"
+            }
+        }]
+    }
+}

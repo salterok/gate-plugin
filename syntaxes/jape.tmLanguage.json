@@ -1,0 +1,472 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Jape",
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#macro"
+		},
+		{
+			"include": "#rule"
+		},
+		{
+			"include": "#multiphase"
+		}
+	],
+	"repository": {
+		"multiphase": {
+			"patterns": [
+				{
+					"match": "\\b(MultiPhase)\\s*:\\s*([a-zA-Z_][a-zA-Z_\\d]*)",
+					"captures": {
+						"1": {
+							"name": "keyword"
+						},
+						"2": {
+							"name": "keyword.control.jape"
+						}
+					}
+				},
+				{
+					"match": "\\b(Phases)\\s*:",
+					"captures": {
+						"1": {
+							"name": "keyword"
+						}
+					}
+				},
+				{
+					"include": "#fn-name"
+				}
+			]
+		},
+		"expr": {
+			"patterns": [
+				{
+					"name": "entity.name.section",
+					"begin": "\\(",
+					"end": "\\)\\s?\\??(\\s?:\\s?([a-zA-Z_][a-zA-Z_\\d]*))?",
+					"endCaptures": {
+						"2": {
+							"name": "keyword.control.jape"
+						}
+					},
+					"patterns": [
+						{
+							"include": "#expr-block"
+						},
+						{
+							"include": "#expr"
+						},
+						{
+							"name": "entity.name.function",
+							"match": "\\b[a-zA-Z_][a-zA-Z_\\d]*\\b"
+						}
+					]
+				}
+			]
+		},
+		"expr-block": {
+			"patterns": [
+				{
+					"name": "entity.name.section",
+					"begin": "{",
+					"end": "}",
+					"patterns": [
+						{
+							"include": "#entity-access"
+						},
+						{
+							"include": "#operators"
+						},
+						{
+							"include": "#value-sources"
+						},
+						{
+							"include": "#block-comment"
+						}
+					]
+				}
+			]
+		},
+		"entity-access": {
+			"patterns": [
+				{
+					"match": "\\b([a-zA-Z_][a-zA-Z_\\d]*)\\b(\\.([a-zA-Z_][a-zA-Z_\\d]*))?",
+					"captures": {
+						"1": {
+							"name": "entity.name.type"
+						},
+						"3": {
+							"name": "variable"
+						}
+					}
+				}
+			]
+		},
+		"value-sources": {
+			"patterns": [
+				{
+					"include": "#values"
+				},
+				{
+					"include": "#template-use"
+				},
+				{
+					"begin": ":([a-zA-Z_][a-zA-Z_\\d]*)",
+					"end": "(?=[,\\/}\\]\\s])",
+					"patterns": [
+						{
+							"match": "@([a-zA-Z_][a-zA-Z_\\d]*)",
+							"captures": {
+								"1": {
+									"name": "entity.name.function"
+								}
+							}
+						},
+						{
+							"include": "#entity-access"
+						}
+					],
+					"beginCaptures": {
+						"1": {
+							"name": "keyword.control.jape"
+						}
+					}
+				}
+			]
+		},
+		"template-use": {
+			"patterns": [
+				{
+					"begin": "\\[([a-zA-Z_][a-zA-Z_\\d]*)",
+					"end": "\\]",
+					"patterns": [
+						{
+							"begin": "([a-zA-Z_][a-zA-Z_\\d]*)\\s*=",
+							"end": "(?=[,\\]])",
+							"patterns": [
+								{
+									"include": "#value-sources"
+								}
+							],
+							"beginCaptures": {
+								"1": {
+									"name": "variable"
+								}
+							}
+						}
+					],
+					"beginCaptures": {
+						"1": {
+							"name": "constant.regexp"
+						}
+					}
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"match": "\\b(Phase)\\s*:\\s*([a-zA-Z_][a-zA-Z_\\d]*)",
+					"captures": {
+						"1": {
+							"name": "keyword"
+						},
+						"2": {
+							"name": "keyword.control.jape"
+						}
+					}
+				},
+				{
+					"begin": "\\b(Input)\\s*:",
+					"end": "$",
+					"patterns": [
+						{
+							"include": "#comments"
+						},
+						{
+							"match": "([a-zA-Z_][a-zA-Z_\\d]*)",
+							"name": "entity.name.type"
+						}
+					],
+					"beginCaptures": {
+						"1": {
+							"name": "keyword"
+						}
+					}
+				},
+				{
+					"begin": "\\b(Template)\\s*:\\s*([a-zA-Z_][a-zA-Z_\\d]*)\\s*=",
+					"end": "$",
+					"patterns": [
+						{
+							"include": "#comments"
+						},
+						{
+							"include": "#values"
+						},
+						{
+							"include": "#template-use"
+						}
+					],
+					"beginCaptures": {
+						"1": {
+							"name": "keyword"
+						},
+						"2": {
+							"name": "constant.regexp"
+						}
+					}
+				},
+				{
+					"begin": "\\b(Options)\\s*:",
+					"end": "$",
+					"patterns": [
+						{
+							"include": "#comments"
+						},
+						{
+							"match": "\\s*([a-zA-Z_][a-zA-Z_\\d]*)\\s*=\\s*([a-zA-Z_][a-zA-Z_\\d]*)",
+							"captures": {
+								"1": {
+									"name": "keyword.control"
+								},
+								"2": {
+									"name": "constant.numeric"
+								}
+							}
+						}
+					],
+					"beginCaptures": {
+						"1": {
+							"name": "keyword"
+						}
+					}
+				}
+			]
+		},
+		"priority-keyword": {
+			"patterns": [
+				{
+					"match": "\\b(Priority)\\s*:\\s*(\\d+)",
+					"captures": {
+						"1": {
+							"name": "keyword"
+						},
+						"2": {
+							"name": "constant.numeric"
+						}
+					}
+				}
+			]
+		},
+		"operators": {
+			"patterns": [
+				{
+					"name": "keyword.operator",
+					"match": "<|>|[!=]=?[=~]|[=><!]=|contains|notContains|within|notWithin"
+				}
+			]
+		},
+
+		"macro": {
+			"patterns": [
+				{
+					"begin": "(Macro)\\s?:\\s?([a-zA-Z_][a-zA-Z_\\d]*)",
+					"end": "(?=Macro|Rule)",
+					"patterns": [
+						{
+							"include": "#expr"
+						},
+						{
+							"include": "#labeled-java-block"
+						},
+						{
+							"name": "invalid",
+							"match": "-->"
+						}
+					],
+					"beginCaptures": {
+						"1": {
+							"name": "keyword"
+						},
+						"2": {
+							"name": "entity.name.function"
+						}
+					}
+				}
+			]
+		},
+		"rule": {
+			"patterns": [
+				{
+					"begin": "(Rule)\\s?:\\s?([a-zA-Z_][a-zA-Z_\\d]*)",
+					"end": "(?=Macro|Rule)",
+					"patterns": [
+						{
+							"include": "#priority-keyword"
+						},
+						{
+							"include": "#expr"
+						},
+						{
+							"name": "storage.type.jape",
+							"match": "-->"
+						},
+						{
+							"include": "#labeled-java-block"
+						},
+						{
+							"include": "#unlabeled-java-block"
+						},
+						{
+							"include": "#jape-rhs"
+						},
+						{
+							"include": "#fn-name"
+						}
+					],
+					"beginCaptures": {
+						"1": {
+							"name": "keyword"
+						},
+						"2": {
+							"name": "entity.name.function"
+						}
+					}
+				}
+			]
+		},
+		"jape-rhs": {
+			"patterns": [
+				{
+					"begin": ":\\s*([a-zA-Z_][a-zA-Z_\\d]*)\\s*\\.\\s*([a-zA-Z_][a-zA-Z_\\d]*)\\s*=\\s*{",
+					"end": "}",
+					"beginCaptures": {
+						"1": {
+							"name": "keyword.control.jape"
+						},
+						"2": {
+							"name": "entity.name.type"
+						}
+					},
+					"patterns": [
+						{
+							"include": "#comments"
+						},
+						{
+							"begin": "([a-zA-Z_][a-zA-Z_\\d]*)\\s*=",
+							"end": "(?=[,\\/}])",
+							"patterns": [
+								{
+									"include": "#value-sources"
+								}
+							],
+							"beginCaptures": {
+								"1": {
+									"name": "variable"
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		"unlabeled-java-block": {
+			"patterns": [
+				{
+					"contentName": "source.java",
+					"begin": "{",
+					"end": "}",
+					"patterns": [
+						{
+							"include": "source.java"
+						}
+					]
+				}
+			]
+		},
+		"labeled-java-block": {
+			"patterns": [
+				{
+					"contentName": "source.java",
+					"begin": ":([a-zA-Z_][a-zA-Z_\\d]*)[\\s]*{",
+					"end": "}",
+					"beginCaptures": {
+						"1": {
+							"name": "keyword.control.jape"
+						}
+					},
+					"patterns": [
+						{
+							"include": "#comments"
+						},
+						{
+							"include": "source.java"
+						}
+					]
+				}
+			]
+		},
+		"values": {
+			"patterns": [
+				{
+					"include": "#strings"
+				},
+				{
+					"name": "constant.numeric",
+					"match": "\\d+"
+				},
+				{
+					"include": "#fn-name"
+				}
+			]
+		},
+		"fn-name": {
+			"patterns": [
+				{
+					"name": "entity.name.function",
+					"match": "[a-zA-Z_][a-zA-Z_\\d]*"
+				}
+			]
+		},
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line",
+					"match": "\/\/.*$"
+				},
+				{
+					"include": "#block-comment"
+				}
+			]
+		},
+		"block-comment": {
+			"patterns": [
+				{
+					"name": "comment.block",
+					"begin": "\/\\*",
+					"end": "\\*\/"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.jape",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.jape",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.jape"
+}
