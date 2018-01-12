@@ -288,6 +288,9 @@
 							"include": "#labeled-java-block"
 						},
 						{
+							"include": "#comments"
+						},
+						{
 							"name": "invalid",
 							"match": "-->"
 						}
@@ -315,6 +318,9 @@
 						{
 							"include": "#expr"
 						},
+                        {
+                          "include": "#comments"
+                        },
 						{
 							"name": "storage.type.jape",
 							"match": "-->"
@@ -464,6 +470,14 @@
 				{
 					"name": "constant.character.escape.jape",
 					"match": "\\\\."
+				},
+				{
+					"match": "\\$\\{([a-zA-Z_][a-zA-Z_\\d]*)\\}",
+					"captures": {
+						"1": {
+							"name": "variable"
+						}
+					}
 				}
 			]
 		}
