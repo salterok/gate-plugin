@@ -12,20 +12,53 @@
     "categories": [
         "Languages"
     ],
+    "main": "./out/extension",
+    "scripts": {
+        "build-parser": "cmd /C build-parser.cmd",
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "@types/node": "^9.4.6",
+        "antlr4ts-cli": "^0.4.0-alpha.4",
+        "generator-code": "^1.1.25",
+        "typescript": "^2.7.2",
+        "vscode": "^1.1.10"
+    },
+    "activationEvents": [
+        "onLanguage:jape"
+    ],
     "contributes": {
-        "languages": [{
-            "id": "jape",
-            "aliases": ["Jape", "jape"],
-            "extensions": [".jape"],
-            "configuration": "./language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "jape",
-            "scopeName": "source.jape",
-            "path": "./syntaxes/jape.tmLanguage.json",
-            "embeddedLanguages": {
-                "source.java": "java"
+        "languages": [
+            {
+                "id": "jape",
+                "aliases": [
+                    "Jape",
+                    "jape"
+                ],
+                "extensions": [
+                    ".jape"
+                ],
+                "configuration": "./language-configuration.json"
             }
-        }]
+        ],
+        "grammars": [
+            {
+                "language": "jape",
+                "scopeName": "source.jape",
+                "path": "./syntaxes/jape.tmLanguage.json",
+                "embeddedLanguages": {
+                    "source.java": "java"
+                }
+            }
+        ]
+    },
+    "dependencies": {
+        "antlr4": "^4.7.1",
+        "antlr4ts": "^0.4.1-alpha.0",
+        "functional-red-black-tree": "^1.0.1"
     }
 }
