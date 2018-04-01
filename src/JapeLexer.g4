@@ -1,0 +1,53 @@
+
+lexer grammar JapeLexer;
+
+WS
+    : [ \r\t\n]+ -> skip
+    ;
+BLOCK_COMMENT
+    : '/*' .*? '*/' -> skip
+	;
+LINE_COMMENT
+	: '//' ~[\r\n]* -> skip
+	;
+
+
+INPUT: 'Input';
+PHASE: 'Phase';
+PHASES: 'Phases';
+RULE: 'Rule';
+MACRO: 'Macro';
+PRIORITY: 'Priority';
+TEMPLATE: 'Template';
+
+INT: [1-9] [0-9]*;
+
+IDENTIFIER
+    : [a-zA-Z] [a-zA-Z0-9]* 
+    | '"' IDENTIFIER '"'
+    ;
+
+STRING
+    : '"' .*? '"'
+    ;
+
+ASSIGNMENT: '=';
+ACCESSOR: '.';
+ENTRIES_SEPARATOR: ',';
+RULE_SEPARATOR: '|';
+GROUP_OPEN: '(';
+GROUP_CLOSE: ')';
+ALIAS_SEPARATOR: ':';
+RULE_ENTRY_OPEN: '{';
+RULE_ENTRY_CLOSE: '}';
+
+RHS_SEPARATOR: '-->';
+
+COMPARE
+    : '=='
+    | '>'
+    | '<'
+    | '<='
+    | '>='
+    ;
+
