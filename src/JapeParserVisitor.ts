@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-19 23:27:35 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-04-02 02:11:13
+ * @Last Modified time: 2018-07-07 03:47:40
  */
 
 import { JapeParserVisitor as IJapeParserVisitor } from "./parser/JapeParserVisitor";
@@ -54,7 +54,7 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<{}> implements I
         }
 
         rule.blocks = this.visitRuleBlock(ctx.ruleBlock());
-        
+
         // debugger;
         return rule;
     }
@@ -68,11 +68,11 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<{}> implements I
             return this.visitRuleEntry(entry);
         });
 
-        return {
+        return new RuleBlock({
             blocks,
             entries,
             alias: ctx.ALIAS_SEPARATOR() ? ctx.IDENTIFIER().text : undefined
-        };
+        });
     }
 
     visitRuleEntry(ctx: P.RuleEntryContext): RuleClause[] {
@@ -82,11 +82,11 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<{}> implements I
     }
 
     visitRuleClause(ctx: P.RuleClauseContext): RuleClause {
-        return {
+        return new RuleClause({
             path: ctx.IDENTIFIER().map(node => node.text),
             operation: ctx.COMPARE().text,
             value: ctx.value().text
-        };
+        });
     }
 
     visitRuleName(ctx: P.RuleNameContext) {
