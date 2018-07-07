@@ -15,6 +15,7 @@ LINE_COMMENT
 INPUT: 'Input';
 PHASE: 'Phase';
 PHASES: 'Phases';
+OPTIONS: 'Options';
 RULE: 'Rule';
 MACRO: 'Macro';
 PRIORITY: 'Priority';
@@ -23,7 +24,7 @@ TEMPLATE: 'Template';
 INT: [1-9] [0-9]*;
 
 IDENTIFIER
-    : [a-zA-Z] [a-zA-Z0-9]* 
+    : [a-zA-Z] [a-zA-Z0-9_]* 
     | '"' IDENTIFIER '"'
     ;
 
@@ -45,9 +46,15 @@ RHS_SEPARATOR: '-->';
 
 COMPARE
     : '=='
+    | '=~'
+    | '!='
+    | '!~'
     | '>'
     | '<'
     | '<='
     | '>='
+    | '==~'
+    | '!=~'
     ;
 
+// TODO: add contains, notContains, within, notWithin operators

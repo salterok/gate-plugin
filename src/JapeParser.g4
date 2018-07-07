@@ -6,6 +6,7 @@ options { tokenVocab=JapeLexer; }
 program:
     phaseDecl
     (inputDecl)*
+    optionsDecl?
     (ruleDecl)*
     ;
 
@@ -14,6 +15,9 @@ inputDecl:
     
 phaseDecl:
     PHASE ALIAS_SEPARATOR IDENTIFIER;
+
+optionsDecl:
+    OPTIONS ALIAS_SEPARATOR (IDENTIFIER ASSIGNMENT IDENTIFIER)+;
 
 // -------------------- RULE --------------------------
 ruleDecl

@@ -2,21 +2,34 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-04-01 23:50:26 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-07 03:48:10
+ * @Last Modified time: 2018-07-07 03:50:06
  */
+
+interface SourceBlock {
+    start: number;
+    stop: number;
+}
 
 export class Phase {
     name: string;
     inputs: string[];
+    options: PhaseOptions;
 
     rules: Rule[];
     // macros: Macro[];
+}
+
+export class PhaseOptions extends Map<string, string> {
+    
 }
 
 export class Rule {
     name: string;
     priority: number = 1;
     blocks: RuleBlock;
+
+    start: number;
+    stop: number;
 }
 
 export class RuleBlock {
@@ -30,6 +43,10 @@ export class RuleBlock {
     blocks: RuleBlock[];
     entries: RuleClause[][];
     alias: string;
+
+    get aliases() {
+        return [this.alias, ...this.blocks.map(block => block.alias)].filter(a => a);
+    }
 }
 
 export class RuleClause {

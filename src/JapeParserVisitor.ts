@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-19 23:27:35 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-07 03:47:40
+ * @Last Modified time: 2018-07-07 03:51:05
  */
 
 import { JapeParserVisitor as IJapeParserVisitor } from "./parser/JapeParserVisitor";
@@ -11,12 +11,12 @@ import { ParseTree } from "antlr4ts/tree/ParseTree";
 import { RuleNode } from "antlr4ts/tree/RuleNode";
 import * as P from "./parser/JapeParser";
 
-import { Phase, Rule, RuleBlock, RuleClause } from "./JapeSyntaxDefinitions";
+import { Phase, Rule, RuleBlock, RuleClause, PhaseOptions } from "./JapeSyntaxDefinitions";
 
-export class JapeParserVisitor extends AbstractParseTreeVisitor<{}> implements IJapeParserVisitor<{}> {
+export class JapeParserVisitor extends AbstractParseTreeVisitor<Phase> implements IJapeParserVisitor<{}> {
 
     defaultResult() {
-        return { __default: true };
+        return { __default: true } as any;
     }
 
     visitProgram(ctx: P.ProgramContext): Phase {
@@ -32,6 +32,12 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<{}> implements I
         else {
             phase.inputs = [];
         }
+
+        const optionsDeclCtx = ctx.optionsDecl();
+        if (optionsDeclCtx) {
+            phase.options = this.visitOptionsDecl(optionsDeclCtx);
+        }
+
         phase.rules = ctx.ruleDecl().map(ruleCtx => this.visitRuleDecl(ruleCtx));
 
         return phase;
@@ -45,6 +51,19 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<{}> implements I
         return ctx.IDENTIFIER().map(node => node.text);
     }
 
+    visitOptionsDecl(ctx: P.OptionsDeclContext): PhaseOptions {
+        const options = new Map();
+        const identifiers = ctx.IDENTIFIER();
+        if (identifiers.length % 2 === 0) {
+            for (let index = 0; index < identifiers.length; index += 2) {
+                const key = identifiers[index].text;
+                const value = identifiers[index + 1].text;
+                options.set(key, value);
+            }
+        }
+        return options;
+    }
+
     visitRuleDecl(ctx: P.RuleDeclContext): Rule {
         const rule = new Rule();
         rule.name = this.visitRuleName(ctx.ruleName());
@@ -55,7 +74,9 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<{}> implements I
 
         rule.blocks = this.visitRuleBlock(ctx.ruleBlock());
 
-        // debugger;
+        rule.start = ctx.start.line;
+        rule.stop = ctx.stop.line;
+
         return rule;
     }
 
