@@ -80,7 +80,13 @@ japeRhsAnnotation
     ;
 
 japeRhsAnnotationField
-    : IDENTIFIER ASSIGNMENT value
+    : IDENTIFIER ASSIGNMENT japeRhsAnnotationFieldValue
+    ;
+
+japeRhsAnnotationFieldValue
+    : 
+    | ALIAS_SEPARATOR IDENTIFIER ACCESSOR IDENTIFIER (ACCESSOR|VIRTUAL_ACCESSOR) IDENTIFIER
+    | value
     ;
 
 // -------------------- BASIC -------------------------
