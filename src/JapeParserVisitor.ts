@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-19 23:27:35 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-07 03:51:05
+ * @Last Modified time: 2018-07-10 03:27:10
  */
 
 import { JapeParserVisitor as IJapeParserVisitor } from "./parser/JapeParserVisitor";
@@ -11,16 +11,16 @@ import { ParseTree } from "antlr4ts/tree/ParseTree";
 import { RuleNode } from "antlr4ts/tree/RuleNode";
 import * as P from "./parser/JapeParser";
 
-import { Phase, Rule, RuleBlock, RuleClause, PhaseOptions } from "./JapeSyntaxDefinitions";
+import * as D from "./JapeSyntaxDefinitions";
 
-export class JapeParserVisitor extends AbstractParseTreeVisitor<Phase> implements IJapeParserVisitor<{}> {
+export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> implements IJapeParserVisitor<{}> {
 
     defaultResult() {
         return { __default: true } as any;
     }
 
-    visitProgram(ctx: P.ProgramContext): Phase {
-        const phase = new Phase();
+    visitProgram(ctx: P.ProgramContext): D.Phase {
+        const phase = new D.Phase();
 
         phase.name = this.visitPhaseDecl(ctx.phaseDecl());
 
@@ -38,6 +38,7 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<Phase> implement
             phase.options = this.visitOptionsDecl(optionsDeclCtx);
         }
 
+        // TODO: parse macros
         phase.rules = ctx.ruleDecl().map(ruleCtx => this.visitRuleDecl(ruleCtx));
 
         return phase;
@@ -51,7 +52,7 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<Phase> implement
         return ctx.IDENTIFIER().map(node => node.text);
     }
 
-    visitOptionsDecl(ctx: P.OptionsDeclContext): PhaseOptions {
+    visitOptionsDecl(ctx: P.OptionsDeclContext): D.PhaseOptions {
         const options = new Map();
         const identifiers = ctx.IDENTIFIER();
         if (identifiers.length % 2 === 0) {
@@ -64,57 +65,86 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<Phase> implement
         return options;
     }
 
-    visitRuleDecl(ctx: P.RuleDeclContext): Rule {
-        const rule = new Rule();
+    visitRuleDecl(ctx: P.RuleDeclContext): D.Rule {
+        const rule = new D.Rule();
         rule.name = this.visitRuleName(ctx.ruleName());
         const priorityCtx = ctx.rulePriority();
         if (priorityCtx) {
-            rule.priority = this.visitRulePriority(ctx.rulePriority());
+            rule.priority = this.visitRulePriority(priorityCtx);
         }
 
-        rule.blocks = this.visitRuleBlock(ctx.ruleBlock());
+        rule.block = this.visitRuleBlock(ctx.ruleBlock());
 
         rule.start = ctx.start.line;
+
+        if (!ctx.stop) {
+            const error = new Error("ctx.stop is undefined");
+            (error as any).data = ctx;
+            throw error;
+        }
         rule.stop = ctx.stop.line;
 
         return rule;
     }
 
-    visitRuleBlock(ctx: P.RuleBlockContext): RuleBlock {
-        const blocks = ctx.ruleBlock().map(block => {
-            return this.visitRuleBlock(block);
-        });
+    visitRuleBlock(ctx: P.RuleBlockContext): D.GroupEntry {
+        const group = this.visitRuleBlockContent(ctx.ruleBlockContent());
+        const alias = ctx.ALIAS_SEPARATOR() && ctx.IDENTIFIER();
 
-        const entries = ctx.ruleEntry().map(entry => {
-            return this.visitRuleEntry(entry);
-        });
-
-        return new RuleBlock({
-            blocks,
-            entries,
-            alias: ctx.ALIAS_SEPARATOR() ? ctx.IDENTIFIER().text : undefined
-        });
+        return new D.GroupEntry(
+            group,
+            alias && alias.text
+        );
     }
 
-    visitRuleEntry(ctx: P.RuleEntryContext): RuleClause[] {
-        return ctx.ruleClause().map(clause => {
+    visitRuleBlockContent(ctx: P.RuleBlockContentContext): D.BlockContent[] {
+        const groupCtx = ctx.GROUP_OPEN();
+        const nameCtx = ctx.IDENTIFIER();
+        const ruleBlockCtx = ctx.ruleBlockContent();
+
+        if (groupCtx) {
+            const items = this.visitRuleBlockContent(ruleBlockCtx[0]);
+            return [new D.GroupEntry(items, nameCtx && nameCtx.text)];
+        }
+
+        if (nameCtx) {
+            return [new D.NameReference(nameCtx.text)];
+        }
+
+        const ruleEntryCtx = ctx.ruleEntry();
+
+        if (ruleEntryCtx) {
+            return [this.visitRuleEntry(ruleEntryCtx)];
+        }
+
+        const items: D.BlockContent[] = [];
+        for (const contentCtx of ruleBlockCtx) {
+            const parts = this.visitRuleBlockContent(contentCtx);
+            items.push(...parts);
+        }
+
+        return items;
+    }
+
+    visitRuleEntry(ctx: P.RuleEntryContext): D.RuleEntry {
+        const clauses = ctx.ruleClause().map(clause => {
             return this.visitRuleClause(clause);
         });
+        return new D.RuleEntry(clauses);
     }
 
-    visitRuleClause(ctx: P.RuleClauseContext): RuleClause {
-        return new RuleClause({
+    visitRuleClause(ctx: P.RuleClauseContext): D.RuleClause {
+        const compare = ctx.COMPARE();
+        const value = ctx.value();
+        return new D.RuleClause({
             path: ctx.IDENTIFIER().map(node => node.text),
-            operation: ctx.COMPARE().text,
-            value: ctx.value().text
+            operation: compare && compare.text,
+            value: value && value.text
         });
     }
 
     visitRuleName(ctx: P.RuleNameContext) {
-        if (ctx.childCount === 3) {
-            return ctx.getChild(2).text;
-        }
-        return "";
+        return ctx.getChild(2).text;
     }
 
     visitRulePriority(ctx: P.RulePriorityContext) {

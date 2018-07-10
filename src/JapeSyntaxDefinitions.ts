@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-04-01 23:50:26 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-07 03:50:06
+ * @Last Modified time: 2018-07-10 02:41:31
  */
 
 interface SourceBlock {
@@ -11,11 +11,11 @@ interface SourceBlock {
 }
 
 export class Phase {
-    name: string;
-    inputs: string[];
-    options: PhaseOptions;
+    name!: string;
+    inputs!: string[];
+    options!: PhaseOptions;
 
-    rules: Rule[];
+    rules!: Rule[];
     // macros: Macro[];
 }
 
@@ -24,40 +24,61 @@ export class PhaseOptions extends Map<string, string> {
 }
 
 export class Rule {
-    name: string;
+    name!: string;
     priority: number = 1;
-    blocks: RuleBlock;
+    block!: GroupEntry;
 
-    start: number;
-    stop: number;
+    start!: number;
+    stop!: number;
 }
 
-export class RuleBlock {
-
-    constructor(init: Partial<RuleBlock>) {
-        this.blocks = init.blocks;
-        this.entries = init.entries;
-        this.alias = init.alias;
-    }
-
-    blocks: RuleBlock[];
-    entries: RuleClause[][];
-    alias: string;
-
-    get aliases() {
-        return [this.alias, ...this.blocks.map(block => block.alias)].filter(a => a);
+export class RuleEntry {
+    constructor(public clauses: RuleClause[]) {
+        this.clauses = clauses;
     }
 }
 
 export class RuleClause {
 
-    constructor(init: Partial<RuleClause>) {
+    constructor(init: RuleClause) {
         this.path = init.path;
         this.operation = init.operation;
         this.value = init.value;
     }
 
     path: string[];
-    operation: string;
-    value: string;
+    operation: string | undefined;
+    value: string | undefined;
 }
+
+export class GroupEntry {
+    constructor(entries: BlockContent[], alias: string | undefined) {
+        this.entries = entries;
+        this.alias = alias;
+    }
+
+    entries: BlockContent[];
+    alias: string | undefined;
+
+    get aliases(): string[] {
+        const nestedAliases = this.entries.map(block => 
+            block instanceof GroupEntry 
+                ? block.alias 
+                : undefined
+            )
+        .filter(a => a);
+    
+        return [
+            this.alias, 
+            ...nestedAliases
+        ].filter(a => a) as string[];
+    }
+}
+
+export class NameReference {
+    constructor(public name: string) {
+        
+    }
+}
+
+export type BlockContent = NameReference | RuleEntry | GroupEntry;

@@ -7,7 +7,7 @@ program:
     phaseDecl
     (inputDecl)*
     optionsDecl?
-    (ruleDecl)*
+    (ruleDecl|macroDecl)*
     ;
 
 inputDecl:
@@ -19,6 +19,16 @@ phaseDecl:
 optionsDecl:
     OPTIONS ALIAS_SEPARATOR (IDENTIFIER ASSIGNMENT IDENTIFIER)+;
 
+// -------------------- MACRO --------------------------
+// TODO: check if macro can have priority, seems like can't
+macroDecl
+    : macroName rulePriority? ruleBlock
+    ;
+
+macroName
+    : MACRO ALIAS_SEPARATOR IDENTIFIER
+    ;
+    
 // -------------------- RULE --------------------------
 ruleDecl
     : ruleName rulePriority? ruleBlock RHS_SEPARATOR rhs
@@ -33,7 +43,14 @@ rulePriority
     ;
 
 ruleBlock
-    : GROUP_OPEN (ruleEntry|ruleBlock) (RULE_SEPARATOR (ruleEntry|ruleBlock))* GROUP_CLOSE (ALIAS_SEPARATOR IDENTIFIER)?
+    : GROUP_OPEN ruleBlockContent GROUP_CLOSE RULE_KLEENE_OPERATOR? (ALIAS_SEPARATOR IDENTIFIER)?
+    ;
+
+ruleBlockContent
+    : ruleBlockContent RULE_SEPARATOR? ruleBlockContent
+    | GROUP_OPEN ruleBlockContent GROUP_CLOSE RULE_KLEENE_OPERATOR? (ALIAS_SEPARATOR IDENTIFIER)?
+    | ruleEntry
+    | IDENTIFIER
     ;
 
 ruleEntry
@@ -46,7 +63,8 @@ ruleClause
 
 // -------------------- RHS --------------------------
 rhs
-    : rhsEntry (ENTRIES_SEPARATOR rhsEntry)*
+    : rhs ENTRIES_SEPARATOR rhs
+    | rhsEntry
     ;
 
 rhsEntry

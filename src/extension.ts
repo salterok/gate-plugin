@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-15 23:21:27 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-07 04:06:44
+ * @Last Modified time: 2018-07-10 02:40:32
  */
 
 import * as vscode from "vscode";
@@ -64,14 +64,14 @@ class JapeCompletionItemProvider implements vscode.CompletionItemProvider {
                 const rule = japeCtx.findRule(document.fileName, position.line);
                 if (rule) {
                     return Promise.resolve(
-                        rule.blocks.aliases.map(
+                        rule.block.aliases.map(
                             a => new vscode.CompletionItem(a, CompletionItemKind.Reference)
                         )
                     );
                 }
             }
 
-            return null;
+            return null as any;
     }
 }
 
