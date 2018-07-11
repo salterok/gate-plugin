@@ -22,7 +22,7 @@ optionsDecl:
 // -------------------- MACRO --------------------------
 // TODO: check if macro can have priority, seems like can't
 macroDecl
-    : macroName rulePriority? ruleBlock
+    : macroName ruleBlock
     ;
 
 macroName

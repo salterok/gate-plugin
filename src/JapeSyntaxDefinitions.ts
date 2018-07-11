@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-04-01 23:50:26 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-10 02:41:31
+ * @Last Modified time: 2018-07-12 01:59:05
  */
 
 interface SourceBlock {
@@ -15,6 +15,7 @@ export class Phase {
     inputs!: string[];
     options!: PhaseOptions;
 
+    macros!: Rule[];
     rules!: Rule[];
     // macros: Macro[];
 }

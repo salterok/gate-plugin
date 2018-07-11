@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-19 23:27:35 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-10 03:27:10
+ * @Last Modified time: 2018-07-12 02:00:23
  */
 
 import { JapeParserVisitor as IJapeParserVisitor } from "./parser/JapeParserVisitor";
@@ -39,6 +39,7 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
         }
 
         // TODO: parse macros
+        phase.macros = ctx.macroDecl().map(macroCtx => this.visitMacroDecl(macroCtx));
         phase.rules = ctx.ruleDecl().map(ruleCtx => this.visitRuleDecl(ruleCtx));
 
         return phase;
@@ -63,6 +64,24 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
             }
         }
         return options;
+    }
+
+    visitMacroDecl(ctx: P.MacroDeclContext): D.Rule {
+        const rule = new D.Rule();
+        rule.name = this.visitMacroName(ctx.macroName());
+
+        rule.block = this.visitRuleBlock(ctx.ruleBlock());
+
+        rule.start = ctx.start.line;
+
+        if (!ctx.stop) {
+            const error = new Error("ctx.stop is undefined");
+            (error as any).data = ctx;
+            throw error;
+        }
+        rule.stop = ctx.stop.line;
+
+        return rule;
     }
 
     visitRuleDecl(ctx: P.RuleDeclContext): D.Rule {
@@ -144,7 +163,11 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
     }
 
     visitRuleName(ctx: P.RuleNameContext) {
-        return ctx.getChild(2).text;
+        return ctx.IDENTIFIER().text;
+    }
+
+    visitMacroName(ctx: P.MacroNameContext) {
+        return ctx.IDENTIFIER().text;
     }
 
     visitRulePriority(ctx: P.RulePriorityContext) {
