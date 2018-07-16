@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-19 23:27:35 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-12 02:00:23
+ * @Last Modified time: 2018-07-16 21:59:42
  */
 
 import { JapeParserVisitor as IJapeParserVisitor } from "./parser/JapeParserVisitor";
@@ -12,6 +12,7 @@ import { RuleNode } from "antlr4ts/tree/RuleNode";
 import * as P from "./parser/JapeParser";
 
 import * as D from "./JapeSyntaxDefinitions";
+import { Place } from "./utils";
 
 export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> implements IJapeParserVisitor<{}> {
 
@@ -37,8 +38,7 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
         if (optionsDeclCtx) {
             phase.options = this.visitOptionsDecl(optionsDeclCtx);
         }
-
-        // TODO: parse macros
+        
         phase.macros = ctx.macroDecl().map(macroCtx => this.visitMacroDecl(macroCtx));
         phase.rules = ctx.ruleDecl().map(ruleCtx => this.visitRuleDecl(ruleCtx));
 
@@ -73,6 +73,7 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
         rule.block = this.visitRuleBlock(ctx.ruleBlock());
 
         rule.start = ctx.start.line;
+        rule.place = Place.rangeFromToken(ctx.start, ctx.stop);
 
         if (!ctx.stop) {
             const error = new Error("ctx.stop is undefined");

@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-04-01 23:50:26 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-12 01:59:05
+ * @Last Modified time: 2018-07-16 21:58:18
  */
 
 interface SourceBlock {
@@ -29,8 +29,12 @@ export class Rule {
     priority: number = 1;
     block!: GroupEntry;
 
+    place!: NodePlace;
+    
     start!: number;
     stop!: number;
+
+
 }
 
 export class RuleEntry {
@@ -80,6 +84,16 @@ export class NameReference {
     constructor(public name: string) {
         
     }
+}
+
+export interface NodePosition {
+    line: number;
+    character: number;
+}
+
+export interface NodePlace {
+    start: NodePosition;
+    end: NodePosition;
 }
 
 export type BlockContent = NameReference | RuleEntry | GroupEntry;

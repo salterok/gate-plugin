@@ -2,10 +2,9 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-07 01:45:00
+ * @Last Modified time: 2018-07-16 21:53:56
  */
 
-import * as antlr4 from "antlr4";
 import * as antlr4ts from "antlr4ts";
 
 import { JapeParserVisitor } from "./JapeParserVisitor";
@@ -57,8 +56,19 @@ export class JapeContext {
         }
     }
 
+    getSymbols(key: string) {
+        const tree = this.map.get(key);
+        if (!tree) {
+            return [];
+        }
 
-    static getSymbol(code: number) {
+        return tree.macros.map(m => ({
+            name: m.name,
+            start: m.start
+        }));
+    }
+
+    static getLiteral(code: number) {
         const literal = JapeLexer.VOCABULARY.getLiteralName(code);
         return literal && literal.substring(1, literal.length - 1);
     }
