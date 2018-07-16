@@ -2,12 +2,17 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-04-01 23:50:26 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-16 22:20:49
+ * @Last Modified time: 2018-07-16 23:37:23
  */
 
 interface SourceBlock {
     start: number;
     stop: number;
+}
+
+export class MultiPhase {
+    name!: string;
+    phaseNames!: string[];
 }
 
 export class Phase {

@@ -3,7 +3,28 @@ parser grammar JapeParser;
 options { tokenVocab=JapeLexer; }
 
 
-program:
+program
+    : multiPhase
+    | singlePhase
+    ;
+
+// -------------- multi phase -------------------
+multiPhase: 
+    multiPhaseDecl
+    phasesDecl
+    ;
+
+
+multiPhaseDecl:
+    MULTI_PHASE ALIAS_SEPARATOR IDENTIFIER;
+
+phasesDecl:
+    PHASES ALIAS_SEPARATOR IDENTIFIER*
+    ;
+
+// -------------- single phase -------------------
+
+singlePhase:
     phaseDecl
     (inputDecl)*
     optionsDecl?

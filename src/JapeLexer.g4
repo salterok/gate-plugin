@@ -14,6 +14,7 @@ LINE_COMMENT
 
 INPUT: 'Input';
 PHASE: 'Phase';
+MULTI_PHASE: 'MultiPhase';
 PHASES: 'Phases';
 OPTIONS: 'Options';
 RULE: 'Rule';

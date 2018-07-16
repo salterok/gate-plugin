@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-19 23:27:35 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-16 21:59:42
+ * @Last Modified time: 2018-07-16 23:42:31
  */
 
 import { JapeParserVisitor as IJapeParserVisitor } from "./parser/JapeParserVisitor";
@@ -20,7 +20,37 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
         return { __default: true } as any;
     }
 
-    visitProgram(ctx: P.ProgramContext): D.Phase {
+    visitProgram(ctx: P.ProgramContext): D.Phase | D.MultiPhase {
+        const single = ctx.singlePhase();
+
+        if (single) {
+            return this.visitSinglePhase(single);
+        }
+        const multi = ctx.multiPhase();
+        if (multi) {
+            return this.visitMultiPhase(multi);
+        }
+        throw new Error("Can't parse file with jape grammar");
+    }
+    
+    visitMultiPhase(ctx: P.MultiPhaseContext): D.MultiPhase {
+        const phase = new D.MultiPhase();
+
+        phase.name = this.visitMultiPhaseDecl(ctx.multiPhaseDecl());
+        phase.phaseNames = this.visitPhasesDecl(ctx.phasesDecl());
+
+        return phase;
+    }
+
+    visitMultiPhaseDecl(ctx: P.MultiPhaseDeclContext) {
+        return ctx.IDENTIFIER().text;
+    }
+
+    visitPhasesDecl(ctx: P.PhasesDeclContext) {
+        return ctx.IDENTIFIER().map(node => node.text);
+    }
+
+    visitSinglePhase(ctx: P.SinglePhaseContext): D.Phase {
         const phase = new D.Phase();
 
         phase.name = this.visitPhaseDecl(ctx.phaseDecl());
