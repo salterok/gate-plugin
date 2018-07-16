@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-04-01 23:50:26 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-16 21:58:18
+ * @Last Modified time: 2018-07-16 22:20:49
  */
 
 interface SourceBlock {
@@ -29,7 +29,7 @@ export class Rule {
     priority: number = 1;
     block!: GroupEntry;
 
-    place!: NodePlace;
+    place!: NodeRange;
     
     start!: number;
     stop!: number;
@@ -91,7 +91,7 @@ export interface NodePosition {
     character: number;
 }
 
-export interface NodePlace {
+export interface NodeRange {
     start: NodePosition;
     end: NodePosition;
 }

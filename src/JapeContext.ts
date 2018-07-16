@@ -2,13 +2,13 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-16 22:05:17
+ * @Last Modified time: 2018-07-16 22:27:56
  */
 
 import * as antlr4ts from "antlr4ts";
 
 import { JapeParserVisitor } from "./JapeParserVisitor";
-import { Phase } from "./JapeSyntaxDefinitions";
+import { Phase, NodeRange } from "./JapeSyntaxDefinitions";
 import { JapeLexer } from "./parser/JapeLexer";
 
 export class JapeContext {
@@ -56,6 +56,27 @@ export class JapeContext {
         }
     }
 
+    getReference(key: string, name: string, context: "annotation" | "macro"): JapeSymbolReference | null {
+        const tree = this.map.get(key);
+        if (!tree) {
+            return null;
+        }
+
+        if (context === "macro") {
+            const symbol = this.getSymbols(key).find(s => s.name === name);
+            if (!symbol) {
+                return null;
+            }
+            return { name, refs: [{ key: key, range: symbol.range }] };
+        }
+        
+        const input = tree.inputs.find(i => i === name);
+        if (!input) {
+            return null;
+        }
+        return { name, refs: [] };
+    }
+
     getSymbols(key: string) {
         const tree = this.map.get(key);
         if (!tree) {
@@ -77,3 +98,12 @@ export class JapeContext {
 }
 
 export default new JapeContext();
+
+export interface JapeSymbolReference {
+    name: string;
+    
+    refs: {
+        key: string;
+        range: NodeRange;
+    }[];
+}

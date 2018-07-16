@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-15 23:21:27 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-16 22:06:16
+ * @Last Modified time: 2018-07-16 22:54:28
  */
 
 import * as vscode from "vscode";
@@ -11,6 +11,7 @@ import { CompletionItemKind } from "vscode";
 
 import japeCtx, { JapeContext } from "./JapeContext";
 import { JapeLexer } from "./parser/JapeLexer";
+import { Place } from "./utils";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -32,6 +33,10 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.languages.registerDocumentSymbolProvider(
             JAPE_MODE, 
             new JapeDocumentSymbolProvider()
+        ),
+        vscode.languages.registerDefinitionProvider(
+            JAPE_MODE, 
+            new GoDefinitionProvider()
         ),
     );
 
@@ -102,6 +107,30 @@ class JapeDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
         });
 
         return Promise.resolve(items);
+    }
+
+}
+
+class GoDefinitionProvider implements vscode.DefinitionProvider {
+    provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Definition> {
+        const range = document.getWordRangeAtPosition(position);
+        if (!range) {
+            return null;
+        }
+        const name = document.getText(range);
+        console.log("provideDefinition", name);
+
+
+        const reference = japeCtx.getReference(document.fileName, name, "macro");
+        if (!reference) {
+            return null;
+        }
+
+        const locations = reference.refs.map(ref => new vscode.Location(
+            document.uri,
+            Place.toVsCodeRange(ref.range),
+        ));
+        return Promise.resolve(locations);
     }
 
 }
