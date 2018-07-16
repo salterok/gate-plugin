@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-16 21:53:56
+ * @Last Modified time: 2018-07-16 22:05:17
  */
 
 import * as antlr4ts from "antlr4ts";
@@ -64,6 +64,7 @@ export class JapeContext {
 
         return tree.macros.map(m => ({
             name: m.name,
+            range: m.place,
             start: m.start
         }));
     }

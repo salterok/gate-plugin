@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-15 23:21:27 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-10 02:40:32
+ * @Last Modified time: 2018-07-16 22:06:16
  */
 
 import * as vscode from "vscode";
@@ -24,7 +24,15 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(
         vscode.languages.registerCompletionItemProvider(
-            JAPE_MODE, new JapeCompletionItemProvider(), '.', ':')
+            JAPE_MODE, 
+            new JapeCompletionItemProvider(), 
+            '.', 
+            ':'
+        ),
+        vscode.languages.registerDocumentSymbolProvider(
+            JAPE_MODE, 
+            new JapeDocumentSymbolProvider()
+        ),
     );
 
     vscode.workspace.onDidChangeTextDocument(e => {
@@ -60,7 +68,7 @@ class JapeCompletionItemProvider implements vscode.CompletionItemProvider {
             const char = document.getText(new vscode.Range(position.translate(0, -1), position));
 
             console.log("input:", char);
-            if (char === JapeContext.getSymbol(JapeLexer.ALIAS_SEPARATOR)) {
+            if (char === JapeContext.getLiteral(JapeLexer.ALIAS_SEPARATOR)) {
                 const rule = japeCtx.findRule(document.fileName, position.line);
                 if (rule) {
                     return Promise.resolve(
@@ -73,6 +81,29 @@ class JapeCompletionItemProvider implements vscode.CompletionItemProvider {
 
             return null as any;
     }
+}
+
+class JapeDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
+    provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.ProviderResult<vscode.SymbolInformation[]> {
+        const symbols = japeCtx.getSymbols(document.fileName);
+
+        const items = symbols.map(s => {
+            return new vscode.SymbolInformation(
+                s.name, 
+                vscode.SymbolKind.Struct, 
+                s.name, 
+                new vscode.Location(document.uri, 
+                    new vscode.Range(
+                        new vscode.Position(s.range.start.line, s.range.start.character),
+                        new vscode.Position(s.range.start.line, s.range.end.character),
+                    )
+                )
+            )
+        });
+
+        return Promise.resolve(items);
+    }
+
 }
 
 // this method is called when your extension is deactivated
