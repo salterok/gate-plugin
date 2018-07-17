@@ -24,6 +24,13 @@ TEMPLATE: 'Template';
 
 INT: [1-9] [0-9]*;
 
+CONTEXT_OPERATORS
+    : 'contains'
+    | 'notContains'
+    | 'within'
+    | 'notWithin'
+    ;
+
 IDENTIFIER
     : [a-zA-Z] [a-zA-Z0-9_]* 
     | '"' IDENTIFIER '"'
@@ -60,4 +67,3 @@ COMPARE
     | '!=~'
     ;
 
-// TODO: add contains, notContains, within, notWithin operators

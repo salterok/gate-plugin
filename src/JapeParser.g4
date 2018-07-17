@@ -79,7 +79,9 @@ ruleEntry
     ;
 
 ruleClause
-    : IDENTIFIER (ACCESSOR IDENTIFIER)? (COMPARE value)?
+    : IDENTIFIER
+    | IDENTIFIER CONTEXT_OPERATORS IDENTIFIER
+    | IDENTIFIER (ACCESSOR|VIRTUAL_ACCESSOR) IDENTIFIER COMPARE value 
     ;
 
 // -------------------- RHS --------------------------

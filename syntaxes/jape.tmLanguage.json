@@ -79,6 +79,9 @@
 					"end": "}",
 					"patterns": [
 						{
+							"include": "#context-operators"
+						},
+						{
 							"include": "#entity-access"
 						},
 						{
@@ -270,7 +273,16 @@
 			"patterns": [
 				{
 					"name": "keyword.operator",
-					"match": "<|>|[!=]=?[=~]|[=><!]=|contains|notContains|within|notWithin"
+					"match": "<|>|[!=]=?[=~]|[=><!]="
+				}
+			]
+		},
+
+		"context-operators": {
+			"patterns": [
+				{
+					"name": "keyword",
+					"match": "contains|notContains|within|notWithin"
 				}
 			]
 		},
