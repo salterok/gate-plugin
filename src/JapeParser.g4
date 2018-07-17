@@ -92,6 +92,7 @@ rhs
 
 rhsEntry
     : japeRhs
+    | (ALIAS_SEPARATOR IDENTIFIER)? RULE_ENTRY_OPEN .*? RULE_ENTRY_CLOSE
     ;
 
 japeRhs
