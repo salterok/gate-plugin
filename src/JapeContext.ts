@@ -1,21 +1,30 @@
 /*
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
- * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-16 22:27:56
+ * @Last Modified by: Sergiy Samborskiy
+ * @Last Modified time: 2018-07-17 19:12:26
  */
 
 import * as antlr4ts from "antlr4ts";
+import * as path from "path";
 
 import { JapeParserVisitor } from "./JapeParserVisitor";
-import { Phase, NodeRange } from "./JapeSyntaxDefinitions";
+import { SinglePhase, NodeRange, MultiPhase, Phase } from "./JapeSyntaxDefinitions";
 import { JapeLexer } from "./parser/JapeLexer";
+import { TransducerPipeline } from "./TransducerPipeline";
 
 export class JapeContext {
 
     private map = new Map<string, Phase>();
+    private pipelineMap = new Map<string, TransducerPipeline>();
+    private pipelines: TransducerPipeline[] = [];
+
+    constructor(private fileLoader: FileLoader) {
+        
+    }
 
     loadFromSource(key: string, source: string) {
+        console.time(`Parsing ${key}`);
         const cLexer = require("./parser/JapeLexer");
         const cParser = require("./parser/JapeParser");
 
@@ -31,11 +40,78 @@ export class JapeContext {
 
         const visitor = new JapeParserVisitor();
 
-        const result = visitor.visit(tree);
+        try {
+            const result = visitor.visit(tree);
 
-        this.map.set(key, result);
+            this.map.set(key, result);
+            
+            return result;
+        }
+        catch (err) {
+            console.error(key, err);
+        }
+        finally {
+            console.timeEnd(`Parsing ${key}`);
+        }
+    }
+
+    async loadPipelines(initialFile: string) {
+        console.info(`loadPipelines`, initialFile);
+        const files = [initialFile].concat(await this.fileLoader.allFiles("**/*.jape"));
         
-        return result;
+        for (const file of files) {
+            const meta = await this.fileLoader.load(file);
+            if (!meta) {
+                continue;
+            }
+            const phase = this.loadFromSource(file, meta.text);
+
+            if (phase instanceof MultiPhase) {
+                const pipeline = await this.createPipeline(initialFile, phase);
+                this.pipelines.push(pipeline);
+            }
+        }
+    }
+
+    private async createPipeline(filename: string, phase: MultiPhase): Promise<TransducerPipeline> {
+        console.info(`MultiPhase ${phase.name} found in ${filename}. Creating pipeline with ${phase.phaseNames.length} entries`);
+        let pipeline = this.pipelineMap.get(filename);
+        if (pipeline) {
+            return pipeline;
+        }
+
+        pipeline = new TransducerPipeline(filename, phase, this);
+
+        const dirname = path.dirname(filename);
+        
+        for (const phaseName of phase.phaseNames) {
+            const filePath = path.join(dirname, phaseName + ".jape");
+            const phase = this.map.get(filePath);
+            
+            // this.pipelineMap.delete(filePath);
+
+            if (phase) {
+                pipeline.addPhase(phaseName, phase);
+            }
+            else {
+                const meta = await this.fileLoader.load(filePath);
+                if (meta) {
+                    const phase = this.loadFromSource(filePath, meta.text);
+                    if (phase instanceof MultiPhase) {
+                        const innerPipeline = await this.createPipeline(filePath, phase);
+                        console.info(`Rollup inner pipeline ${innerPipeline.phase.name} into ${phaseName} entry of ${pipeline.phase.name}`);
+                        pipeline.addPhase(phaseName, innerPipeline.phase);
+                    }
+                    else {
+                        if (phase) {
+                            pipeline.addPhase(phaseName, phase);
+                        }
+                    }
+                }
+            }
+        }
+
+        return pipeline;
     }
 
     findRule(key: string, position: number) {
@@ -97,7 +173,6 @@ export class JapeContext {
 
 }
 
-export default new JapeContext();
 
 export interface JapeSymbolReference {
     name: string;
@@ -106,4 +181,9 @@ export interface JapeSymbolReference {
         key: string;
         range: NodeRange;
     }[];
+}
+
+export interface FileLoader {
+    load(path: string): Promise<{ version: number; text: string } | null>;
+    allFiles(glob: string): Promise<string[]>;
 }

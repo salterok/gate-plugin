@@ -1,8 +1,8 @@
 /*
  * @Author: mikey.zhaopeng 
  * @Date: 2018-04-01 23:50:26 
- * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-16 23:37:23
+ * @Last Modified by: Sergiy Samborskiy
+ * @Last Modified time: 2018-07-17 14:51:32
  */
 
 interface SourceBlock {
@@ -13,9 +13,11 @@ interface SourceBlock {
 export class MultiPhase {
     name!: string;
     phaseNames!: string[];
+
+    phases!: Map<string, Phase>;
 }
 
-export class Phase {
+export class SinglePhase {
     name!: string;
     inputs!: string[];
     options!: PhaseOptions;
@@ -24,6 +26,8 @@ export class Phase {
     rules!: Rule[];
     // macros: Macro[];
 }
+
+export type Phase = SinglePhase | MultiPhase;
 
 export class PhaseOptions extends Map<string, string> {
     
