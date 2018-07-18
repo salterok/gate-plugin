@@ -11,6 +11,8 @@ LINE_COMMENT
 	: '//' ~[\r\n]* -> skip
 	;
 
+IMPORTS: 'Imports' -> pushMode(JAVA), skip;
+// IMPORTS2: IMPORTS ALIAS_SEPARATOR RULE_ENTRY_OPEN -> pushMode(JAVA);
 
 INPUT: 'Input';
 PHASE: 'Phase';
@@ -67,3 +69,21 @@ COMPARE
     | '!=~'
     ;
 
+OTHER: . -> skip;
+
+mode JAVA;
+
+OPEN: '{' -> mode(JAVA_BLOCK), skip;
+OTHER_JAVA: . -> skip;
+
+mode JAVA_BLOCK;
+
+fragment BLOCK_CONTENT: ~[{}]+;
+
+
+CONTENT
+    : BLOCK_CONTENT -> skip;
+
+CONTENT_BLOCK: '{' (BLOCK_CONTENT|CONTENT_BLOCK) '}' -> skip;
+
+CLOSE: '}' -> popMode, skip;
