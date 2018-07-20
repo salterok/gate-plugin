@@ -47,6 +47,8 @@ ENTRIES_SEPARATOR: ',';
 RULE_SEPARATOR: '|';
 GROUP_OPEN: '(';
 GROUP_CLOSE: ')';
+RANGE_OPEN: '[';
+RANGE_CLOSE: ']';
 ALIAS_SEPARATOR: ':';
 RULE_ENTRY_OPEN: '{' {
     if (this._javaImports) {
@@ -76,7 +78,7 @@ COMPARE
 
 RHS_SEPARATOR: '-->' { this._rhsMode = true; };
 
-OTHER: . -> skip;
+// OTHER: . -> skip;
 
 mode JAVA_BLOCK;
 

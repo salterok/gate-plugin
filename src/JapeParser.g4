@@ -68,14 +68,19 @@ rulePriority
     ;
 
 ruleBlock
-    : GROUP_OPEN ruleBlockContent GROUP_CLOSE RULE_KLEENE_OPERATOR? (ALIAS_SEPARATOR IDENTIFIER)?
+    : GROUP_OPEN ruleBlockContent GROUP_CLOSE ruleBlockContentQuantifier? (ALIAS_SEPARATOR IDENTIFIER)?
     ;
 
 ruleBlockContent
     : ruleBlockContent RULE_SEPARATOR? ruleBlockContent
-    | GROUP_OPEN ruleBlockContent GROUP_CLOSE RULE_KLEENE_OPERATOR? (ALIAS_SEPARATOR IDENTIFIER)?
+    | GROUP_OPEN ruleBlockContent GROUP_CLOSE ruleBlockContentQuantifier? (ALIAS_SEPARATOR IDENTIFIER)?
     | ruleEntry
     | IDENTIFIER
+    ;
+
+ruleBlockContentQuantifier
+    : RULE_KLEENE_OPERATOR
+    | RANGE_OPEN INT (ENTRIES_SEPARATOR INT)? RANGE_CLOSE
     ;
 
 ruleEntry
