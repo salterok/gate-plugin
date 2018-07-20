@@ -11,18 +11,16 @@ LINE_COMMENT
 	: '//' ~[\r\n]* -> skip
 	;
 
-IMPORTS: 'Imports' -> pushMode(JAVA), skip;
-// IMPORTS2: IMPORTS ALIAS_SEPARATOR RULE_ENTRY_OPEN -> pushMode(JAVA);
-
+IMPORTS: 'Imports' { this._javaImports = true; };
 INPUT: 'Input';
 PHASE: 'Phase';
 MULTI_PHASE: 'MultiPhase';
 PHASES: 'Phases';
 OPTIONS: 'Options';
-RULE: 'Rule';
-MACRO: 'Macro';
+RULE: 'Rule' { this._rhsMode = false; };
+MACRO: 'Macro' { this._rhsMode = false; };
 PRIORITY: 'Priority';
-TEMPLATE: 'Template';
+TEMPLATE: 'Template' { this._rhsMode = false; };
 
 INT: [1-9] [0-9]*;
 
@@ -42,7 +40,7 @@ STRING
     : '"' .*? '"'
     ;
 
-ASSIGNMENT: '=';
+ASSIGNMENT: '=' { this._justHitAssignment = this._rhsMode; };
 ACCESSOR: '.';
 VIRTUAL_ACCESSOR: '@';
 ENTRIES_SEPARATOR: ',';
@@ -50,11 +48,18 @@ RULE_SEPARATOR: '|';
 GROUP_OPEN: '(';
 GROUP_CLOSE: ')';
 ALIAS_SEPARATOR: ':';
-RULE_ENTRY_OPEN: '{';
+RULE_ENTRY_OPEN: '{' {
+    if (this._javaImports) {
+        this.pushMode(JapeLexer.JAVA_BLOCK)
+    };
+    if (this._rhsMode && !this._justHitAssignment) {
+        this.pushMode(JapeLexer.JAVA_BLOCK)
+    };
+    this._javaImports = false;
+    this._justHitAssignment = false;
+};
 RULE_ENTRY_CLOSE: '}';
 RULE_KLEENE_OPERATOR: '?' | '*' | '+';
-
-RHS_SEPARATOR: '-->';
 
 COMPARE
     : '=='
@@ -69,21 +74,17 @@ COMPARE
     | '!=~'
     ;
 
+RHS_SEPARATOR: '-->' { this._rhsMode = true; };
+
 OTHER: . -> skip;
-
-mode JAVA;
-
-OPEN: '{' -> mode(JAVA_BLOCK), skip;
-OTHER_JAVA: . -> skip;
 
 mode JAVA_BLOCK;
 
 fragment BLOCK_CONTENT: ~[{}]+;
 
-
 CONTENT
-    : BLOCK_CONTENT -> skip;
+    : BLOCK_CONTENT -> more;
 
-CONTENT_BLOCK: '{' (BLOCK_CONTENT|CONTENT_BLOCK) '}' -> skip;
+CONTENT_BLOCK: '{' (BLOCK_CONTENT|CONTENT_BLOCK) '}' -> more;
 
-CLOSE: '}' -> popMode, skip;
+JAVA_CODE: '}' { this._input.seek(this.inputStream.index - 1); } -> popMode;

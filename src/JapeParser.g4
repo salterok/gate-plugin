@@ -25,11 +25,15 @@ phasesDecl:
 // -------------- single phase -------------------
 
 singlePhase:
+    importsDecl?
     phaseDecl
     (inputDecl)*
     optionsDecl?
     (ruleDecl|macroDecl)*
     ;
+
+importsDecl:
+    IMPORTS ALIAS_SEPARATOR RULE_ENTRY_OPEN JAVA_CODE RULE_ENTRY_CLOSE;
 
 inputDecl:
     INPUT ALIAS_SEPARATOR IDENTIFIER+;
@@ -92,7 +96,7 @@ rhs
 
 rhsEntry
     : japeRhs
-    | (ALIAS_SEPARATOR IDENTIFIER)? RULE_ENTRY_OPEN .*? RULE_ENTRY_CLOSE
+    | (ALIAS_SEPARATOR IDENTIFIER)? RULE_ENTRY_OPEN JAVA_CODE RULE_ENTRY_CLOSE
     ;
 
 japeRhs
