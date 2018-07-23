@@ -1,35 +1,33 @@
 {
     "name": "gate-plugin",
-    "displayName": "gate-plugin",
+    "displayName": "Gate plugin",
     "description": "Add gate development support to your favorite editor",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "author": "Sergiy Samborskiy <salterok@gmail.com>",
-    "publisher": "Sergiy Samborskiy <salterok@gmail.com>",
+    "publisher": "SergiySamborskiy",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/salterok/gate-plugin.git"
+    },
     "engines": {
         "vscode": "^1.19.0"
     },
     "license": "MIT",
-    "categories": [
-        "Languages"
-    ],
-    "main": "./out/extension",
+    "icon": "icon.png",
     "scripts": {
         "build-parser": "cmd /C build-parser.cmd",
-        "vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
+        "vscode:prepublish": "",
+        "compile": "build-parser.cmd & tsc -p ./",
         "watch": "tsc -watch -p ./",
         "postinstall": "node ./node_modules/vscode/bin/install",
         "test": "npm run compile && node ./node_modules/vscode/bin/test"
     },
-    "devDependencies": {
-        "@types/node": "^9.4.6",
-        "antlr4ts-cli": "^0.4.0-alpha.4",
-        "generator-code": "^1.1.25",
-        "typescript": "^2.7.2",
-        "vscode": "^1.1.10"
+    "dependencies": {
     },
-    "activationEvents": [
-        "onLanguage:jape"
+    "devDependencies": {
+    },
+    "categories": [
+        "Programming Languages"
     ],
     "contributes": {
         "languages": [
@@ -55,10 +53,5 @@
                 }
             }
         ]
-    },
-    "dependencies": {
-        "antlr4": "^4.7.1",
-        "antlr4ts": "^0.4.1-alpha.0",
-        "functional-red-black-tree": "^1.0.1"
     }
 }
