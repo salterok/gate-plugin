@@ -1,17 +1,19 @@
 /*
  * @Author: salterok 
  * @Date: 2018-02-15 23:21:27 
- * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-16 22:54:28
+ * @Last Modified by: Sergiy Samborskiy
+ * @Last Modified time: 2018-07-17 18:03:48
  */
 
 import * as vscode from "vscode";
 
 import { CompletionItemKind } from "vscode";
 
-import japeCtx, { JapeContext } from "./JapeContext";
+import { JapeContext } from "./JapeContext";
 import { JapeLexer } from "./parser/JapeLexer";
 import { Place } from "./utils";
+
+import { japeCtx } from "./VsCodeContext";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -40,11 +42,14 @@ export function activate(context: vscode.ExtensionContext) {
         ),
     );
 
+    const activeTextEditor = vscode.window.activeTextEditor;
+    if (activeTextEditor) {
+        japeCtx.loadPipelines(activeTextEditor.document.fileName).catch(console.error);
+    }
+
     vscode.workspace.onDidChangeTextDocument(e => {
         // console.log("Edit", e.document.fileName, e.contentChanges);
-        console.time("Parse: " + e.document.fileName);
         japeCtx.loadFromSource(e.document.fileName, e.document.getText());
-        console.timeEnd("Parse: " + e.document.fileName);
     });
     vscode.workspace.onDidOpenTextDocument(e => {
         if (e.fileName.endsWith(".jape")) {

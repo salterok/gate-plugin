@@ -1,8 +1,8 @@
 /*
  * @Author: salterok 
  * @Date: 2018-02-19 23:27:35 
- * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-16 23:42:31
+ * @Last Modified by: Sergiy Samborskiy
+ * @Last Modified time: 2018-07-17 17:16:38
  */
 
 import { JapeParserVisitor as IJapeParserVisitor } from "./parser/JapeParserVisitor";
@@ -20,7 +20,7 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
         return { __default: true } as any;
     }
 
-    visitProgram(ctx: P.ProgramContext): D.Phase | D.MultiPhase {
+    visitProgram(ctx: P.ProgramContext): D.SinglePhase | D.MultiPhase {
         const single = ctx.singlePhase();
 
         if (single) {
@@ -50,8 +50,8 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
         return ctx.IDENTIFIER().map(node => node.text);
     }
 
-    visitSinglePhase(ctx: P.SinglePhaseContext): D.Phase {
-        const phase = new D.Phase();
+    visitSinglePhase(ctx: P.SinglePhaseContext): D.SinglePhase {
+        const phase = new D.SinglePhase();
 
         phase.name = this.visitPhaseDecl(ctx.phaseDecl());
 

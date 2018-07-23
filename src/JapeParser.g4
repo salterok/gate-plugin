@@ -25,11 +25,15 @@ phasesDecl:
 // -------------- single phase -------------------
 
 singlePhase:
+    importsDecl?
     phaseDecl
     (inputDecl)*
     optionsDecl?
     (ruleDecl|macroDecl)*
     ;
+
+importsDecl:
+    IMPORTS ALIAS_SEPARATOR RULE_ENTRY_OPEN JAVA_CODE RULE_ENTRY_CLOSE;
 
 inputDecl:
     INPUT ALIAS_SEPARATOR IDENTIFIER+;
@@ -64,14 +68,19 @@ rulePriority
     ;
 
 ruleBlock
-    : GROUP_OPEN ruleBlockContent GROUP_CLOSE RULE_KLEENE_OPERATOR? (ALIAS_SEPARATOR IDENTIFIER)?
+    : GROUP_OPEN ruleBlockContent GROUP_CLOSE ruleBlockContentQuantifier? (ALIAS_SEPARATOR IDENTIFIER)?
     ;
 
 ruleBlockContent
     : ruleBlockContent RULE_SEPARATOR? ruleBlockContent
-    | GROUP_OPEN ruleBlockContent GROUP_CLOSE RULE_KLEENE_OPERATOR? (ALIAS_SEPARATOR IDENTIFIER)?
+    | GROUP_OPEN ruleBlockContent GROUP_CLOSE ruleBlockContentQuantifier? (ALIAS_SEPARATOR IDENTIFIER)?
     | ruleEntry
     | IDENTIFIER
+    ;
+
+ruleBlockContentQuantifier
+    : RULE_KLEENE_OPERATOR
+    | RANGE_OPEN INT (ENTRIES_SEPARATOR INT)? RANGE_CLOSE
     ;
 
 ruleEntry
@@ -79,7 +88,9 @@ ruleEntry
     ;
 
 ruleClause
-    : IDENTIFIER (ACCESSOR IDENTIFIER)? (COMPARE value)?
+    : IDENTIFIER
+    | IDENTIFIER CONTEXT_OPERATORS IDENTIFIER
+    | IDENTIFIER (ACCESSOR|VIRTUAL_ACCESSOR) IDENTIFIER COMPARE value 
     ;
 
 // -------------------- RHS --------------------------
@@ -90,6 +101,7 @@ rhs
 
 rhsEntry
     : japeRhs
+    | (ALIAS_SEPARATOR IDENTIFIER)? RULE_ENTRY_OPEN JAVA_CODE RULE_ENTRY_CLOSE
     ;
 
 japeRhs
