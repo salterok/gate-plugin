@@ -1,6 +1,29 @@
 
 lexer grammar JapeLexer;
 
+tokens { JAVA_CODE }
+
+@lexer::members {
+private _curlyBraceOpenCnt = 0;
+private _javaImports = false;
+private _rhsMode = false;
+private _justHitAssignment = false;
+
+private exitOnCloseBracketMatch() {
+    if (this._curlyBraceOpenCnt > 0) {
+        this.more();
+        this._curlyBraceOpenCnt--;
+        return;
+    }
+    this._curlyBraceOpenCnt = 0;
+    this._input.seek(this.inputStream.index - 1);
+    this.type = this.constructor.JAVA_CODE;
+    this.emit();
+    this.popMode();
+}
+
+}
+
 WS
     : [ \r\t\n]+ -> skip
     ;
@@ -84,9 +107,7 @@ mode JAVA_BLOCK;
 
 fragment BLOCK_CONTENT: ~[{}]+;
 
-CONTENT
-    : BLOCK_CONTENT -> more;
+OPEN_BRACE: '{' { this._curlyBraceOpenCnt++; } -> more;
+CLOSE_BRACE: '}' { this.exitOnCloseBracketMatch(); };
 
-CONTENT_BLOCK: '{' (BLOCK_CONTENT|CONTENT_BLOCK) '}' -> more;
-
-JAVA_CODE: '}' { this._input.seek(this.inputStream.index - 1); } -> popMode;
+ANY: . -> more;
