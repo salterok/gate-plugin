@@ -9,6 +9,8 @@ import * as vscode from "vscode";
 
 import { CompletionItemKind } from "vscode";
 
+import "./ErrorPatcher";
+
 import { JapeContext } from "./JapeContext";
 import { JapeLexer } from "./parser/JapeLexer";
 import { Place } from "./utils";
@@ -38,10 +40,10 @@ export function activate(context: vscode.ExtensionContext) {
         ),
     );
 
-    const activeTextEditor = vscode.window.activeTextEditor;
-    if (activeTextEditor) {
-        japeCtx.loadPipelines(activeTextEditor.document.fileName).catch(console.error);
-    }
+    // const activeTextEditor = vscode.window.activeTextEditor;
+    // if (activeTextEditor) {
+    //     japeCtx.loadPipelines(activeTextEditor.document.fileName).catch(console.error);
+    // }
 
     vscode.workspace.onDidChangeTextDocument(e => {
         // console.log("Edit", e.document.fileName, e.contentChanges);

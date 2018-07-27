@@ -36,11 +36,11 @@ export class JapeContext {
         // parser.addParseListener(new JapeParserVisitor());
         parser.buildParseTrees = true;
 
-        const tree = parser.program();
-
-        const visitor = new JapeParserVisitor();
-
         try {
+            const tree = parser.program();
+
+            const visitor = new JapeParserVisitor();
+
             const result = visitor.visit(tree);
 
             this.map.set(key, result);
@@ -115,7 +115,7 @@ export class JapeContext {
     }
 
     findRule(key: string, position: number) {
-        const tree = this.map.get(key);
+        const tree = this._get(key);
         if (!tree) {
             return undefined;
         }
@@ -133,7 +133,7 @@ export class JapeContext {
     }
 
     getReference(key: string, name: string, context: "annotation" | "macro"): JapeSymbolReference | null {
-        const tree = this.map.get(key);
+        const tree = this._get(key);
         if (!tree) {
             return null;
         }
@@ -154,7 +154,7 @@ export class JapeContext {
     }
 
     getSymbols(key: string) {
-        const tree = this.map.get(key);
+        const tree = this._get(key);
         if (!tree) {
             return [];
         }
@@ -169,6 +169,15 @@ export class JapeContext {
     static getLiteral(code: number) {
         const literal = JapeLexer.VOCABULARY.getLiteralName(code);
         return literal && literal.substring(1, literal.length - 1);
+    }
+
+
+    _get(key: string): SinglePhase | null {
+        const tree = this.map.get(key);
+        if (tree instanceof SinglePhase) {
+            return tree;
+        }
+        return null;
     }
 
 }

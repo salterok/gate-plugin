@@ -16,19 +16,31 @@
     "icon": "icon.png",
     "scripts": {
         "build-parser": "cmd /C build-parser.cmd",
-        "vscode:prepublish": "",
+        "vscode:prepublish": "npm install & npm run compile",
         "compile": "build-parser.cmd & tsc -p ./",
         "watch": "tsc -watch -p ./",
         "postinstall": "node ./node_modules/vscode/bin/install",
         "test": "npm run compile && node ./node_modules/vscode/bin/test"
     },
     "dependencies": {
+        "antlr4": "^4.7.1",
+        "antlr4ts": "^0.5.0-alpha.8565fd2b",
+        "antlr4ts-cli": "^0.4.0-canary.37504efa",
+        "functional-red-black-tree": "^1.0.1"
     },
     "devDependencies": {
+        "@types/node": "^9.4.6",
+        "generator-code": "^1.1.25",
+        "typescript": "^2.7.2",
+        "vscode": "^1.1.10"
     },
     "categories": [
         "Programming Languages"
     ],
+    "activationEvents": [
+        "onLanguage:jape"
+    ],
+    "main": "./out/extension",
     "contributes": {
         "languages": [
             {

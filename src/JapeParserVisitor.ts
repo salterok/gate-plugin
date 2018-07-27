@@ -6,9 +6,7 @@
  */
 
 import { JapeParserVisitor as IJapeParserVisitor } from "./parser/JapeParserVisitor";
-import { AbstractParseTreeVisitor } from "antlr4ts/tree";
-import { ParseTree } from "antlr4ts/tree/ParseTree";
-import { RuleNode } from "antlr4ts/tree/RuleNode";
+import { AbstractParseTreeVisitor } from "antlr4ts";
 import * as P from "./parser/JapeParser";
 
 import * as D from "./JapeSyntaxDefinitions";
