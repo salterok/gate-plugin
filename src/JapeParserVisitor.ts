@@ -12,7 +12,7 @@ import * as P from "./parser/JapeParser";
 import * as D from "./JapeSyntaxDefinitions";
 import { Place } from "./utils";
 
-export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> implements IJapeParserVisitor<{}> {
+export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> implements IJapeParserVisitor<{} | undefined> {
 
     defaultResult() {
         return { __default: true } as any;
@@ -95,26 +95,16 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
     }
 
     visitMacroDecl(ctx: P.MacroDeclContext): D.Rule {
-        const rule = new D.Rule();
+        const rule = new D.Rule(ctx);
         rule.name = this.visitMacroName(ctx.macroName());
 
         rule.block = this.visitRuleBlock(ctx.ruleBlock());
-
-        rule.start = ctx.start.line;
-        rule.place = Place.rangeFromToken(ctx.start, ctx.stop);
-
-        if (!ctx.stop) {
-            const error = new Error("ctx.stop is undefined");
-            (error as any).data = ctx;
-            throw error;
-        }
-        rule.stop = ctx.stop.line;
 
         return rule;
     }
 
     visitRuleDecl(ctx: P.RuleDeclContext): D.Rule {
-        const rule = new D.Rule();
+        const rule = new D.Rule(ctx);
         rule.name = this.visitRuleName(ctx.ruleName());
         const priorityCtx = ctx.rulePriority();
         if (priorityCtx) {
@@ -122,15 +112,7 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
         }
 
         rule.block = this.visitRuleBlock(ctx.ruleBlock());
-
-        rule.start = ctx.start.line;
-
-        if (!ctx.stop) {
-            const error = new Error("ctx.stop is undefined");
-            (error as any).data = ctx;
-            throw error;
-        }
-        rule.stop = ctx.stop.line;
+        rule.annotations = this.visitRhs(ctx.rhs());
 
         return rule;
     }
@@ -201,5 +183,60 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
 
     visitRulePriority(ctx: P.RulePriorityContext) {
         return parseInt(ctx.INT().text);
+    }
+
+    visitRhs(ctx: P.RhsContext): D.Annotation[] {
+        const annotations = [];
+
+        const rhsContextArray = ctx.rhs();
+        for (const rhsContext of rhsContextArray) {
+            annotations.push(...this.visitRhs(rhsContext));
+        }
+
+        const rhsEntryCtx = ctx.rhsEntry();
+        if (rhsEntryCtx) {
+            const annotation = this.visitRhsEntry(rhsEntryCtx);
+            if (annotation) {
+                annotations.push(annotation);
+            }
+        }
+
+        return annotations;
+    }
+
+    visitRhsEntry(ctx: P.RhsEntryContext): D.Annotation | undefined {
+        const japeRhsContext = ctx.japeRhs();
+        if (!japeRhsContext) {
+            // do nothing with java rhs blocks
+            return undefined;
+        }
+
+        return this.visitJapeRhs(japeRhsContext);
+    }
+
+    visitJapeRhs(ctx: P.JapeRhsContext): D.Annotation {
+        const annotation = new D.Annotation();
+
+        annotation.name = ctx.IDENTIFIER(1).text;
+        annotation.features = this.visitJapeRhsAnnotation(ctx.japeRhsAnnotation());
+
+        return annotation;
+    }
+
+    visitJapeRhsAnnotation(ctx: P.JapeRhsAnnotationContext): D.AnnotationFeature[] {
+        return ctx.japeRhsAnnotationField().map(this.visitJapeRhsAnnotationField.bind(this));
+    }
+
+    visitJapeRhsAnnotationField(ctx: P.JapeRhsAnnotationFieldContext): D.AnnotationFeature {
+        const feature = new D.AnnotationFeature();
+
+        feature.name = ctx.IDENTIFIER().text;
+        feature.value = this.visitJapeRhsAnnotationFieldValue(ctx.japeRhsAnnotationFieldValue());
+
+        return feature;
+    }
+
+    visitJapeRhsAnnotationFieldValue(ctx: P.JapeRhsAnnotationFieldValueContext): string {
+        return ctx.text; // just all text for now
     }
 }

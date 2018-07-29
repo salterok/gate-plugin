@@ -6,7 +6,7 @@
  */
 
 import * as vscode from "vscode";
-import { Token } from "antlr4ts"
+import { Token, ParserRuleContext } from "antlr4ts"
 import { NodeRange, NodePosition } from "./JapeSyntaxDefinitions";
 
 export class Place {
@@ -18,11 +18,16 @@ export class Place {
         return { line: token.line - 1, character: token.charPositionInLine };
     }
 
-    static rangeFromToken(start: Token, end: Token | undefined): NodeRange {
-        if (!end) {
+    static rangeFromToken(ctxNode: ParserRuleContext): NodeRange
+    static rangeFromToken(start: Token, end: Token | undefined): NodeRange
+    static rangeFromToken(ctxNode: Token | ParserRuleContext, end?: Token | undefined): NodeRange {
+        let startNode = ctxNode instanceof ParserRuleContext ? ctxNode.start : ctxNode;
+        let endNode = ctxNode instanceof ParserRuleContext ? ctxNode.stop : end;
+
+        if (!endNode) {
             throw new Error("Token is not defined");
         }
-        return { start: Place.positionFromToken(start), end: Place.positionFromToken(start) };
+        return { start: Place.positionFromToken(startNode), end: Place.positionFromToken(endNode) };
     }
 
     static toVsCodePosition(pos: NodePosition) {

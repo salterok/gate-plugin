@@ -5,9 +5,15 @@
  * @Last Modified time: 2018-07-17 14:51:32
  */
 
-interface SourceBlock {
-    start: number;
-    stop: number;
+import { ParserRuleContext } from "antlr4ts";
+import { Place } from "./utils";
+
+class SourceBlock {
+    readonly range: NodeRange;
+
+    constructor(ctx: NodeRange | ParserRuleContext) {
+        this.range = ctx instanceof ParserRuleContext ? Place.rangeFromToken(ctx) : ctx;
+    }
 }
 
 export class MultiPhase {
@@ -33,17 +39,11 @@ export class PhaseOptions extends Map<string, string> {
     
 }
 
-export class Rule {
+export class Rule extends SourceBlock {
     name!: string;
     priority: number = 1;
     block!: GroupEntry;
-
-    place!: NodeRange;
-    
-    start!: number;
-    stop!: number;
-
-
+    annotations!: Annotation[];
 }
 
 export class RuleEntry {
@@ -87,6 +87,16 @@ export class GroupEntry {
             ...nestedAliases
         ].filter(a => a) as string[];
     }
+}
+
+export class Annotation {
+    name!: string;
+    features!: AnnotationFeature[];
+}
+
+export class AnnotationFeature {
+    name!: string;
+    value!: string; // just string for now
 }
 
 export class NameReference {

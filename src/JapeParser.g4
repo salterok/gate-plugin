@@ -105,7 +105,7 @@ rhsEntry
     ;
 
 japeRhs
-    : ALIAS_SEPARATOR IDENTIFIER ACCESSOR IDENTIFIER ASSIGNMENT japeRhsAnnotation
+    : ALIAS_SEPARATOR IDENTIFIER ACCESSOR name=IDENTIFIER ASSIGNMENT japeRhsAnnotation
     ;
 
 japeRhsAnnotation

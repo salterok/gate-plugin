@@ -122,11 +122,11 @@ export class JapeContext {
         for (let index = 0; index < tree.rules.length; index++) {
             const rule = tree.rules[index];
 
-            if (position >= rule.start && position < rule.stop) {
+            if (position >= rule.range.start.line && position < rule.range.end.line) {
                 return tree.rules[index];
             }
 
-            if (position < rule.start) {
+            if (position < rule.range.start.line) {
                 return tree.rules[index - 1];
             }
         }
@@ -161,8 +161,7 @@ export class JapeContext {
 
         return tree.macros.map(m => ({
             name: m.name,
-            range: m.place,
-            start: m.start
+            range: m.range,
         }));
     }
 
