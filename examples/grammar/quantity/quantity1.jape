@@ -1,0 +1,13 @@
+
+Phase: BasicQuantity
+Input: Lookup Token
+
+Rule: Quantity1
+Priority: 1
+(
+    ({ Token.type == "number" }): value
+    ({ Lookup.majorType == "measure_unit" }): unit
+): label
+--> 
+:labe.Quantity = { rule = "Quantity", value = :value@string, unit = :unit@string }
+

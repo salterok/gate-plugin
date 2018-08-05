@@ -1,0 +1,15 @@
+/**
+ * This is example file to provide syntax colorize support
+ * Author: Sergiy Samborskiy <salterok@gmail.com>
+ *
+ */
+Phase: Basic
+Input: Lookup Token
+
+Rule: IngredientName
+Priority: 1
+(
+    { Lookup.majorType == "ingredient" }
+): label
+--> 
+:labe.IngredientName = { rule = "IngredientName", value = :label@string }

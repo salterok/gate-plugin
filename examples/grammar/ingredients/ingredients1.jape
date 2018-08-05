@@ -1,0 +1,18 @@
+
+Phase: BasicIngredients
+Input: Quantity IngredientName
+
+Rule: Ingredient1
+(
+    ({ Quantity }): qty
+    ({ IngredientName }): ingredient
+): label
+--> 
+:labe.Ingredient = { rule = "Ingredient", qty = :qty.Quantity.value, name = :ingredient.IngredientName.value }
+
+Rule: Ingredient2
+(
+    ({ IngredientName }): ingredient
+): label
+--> 
+:labe.Ingredient = { rule = "Ingredient", qty = "", name = :ingredient.IngredientName.value }

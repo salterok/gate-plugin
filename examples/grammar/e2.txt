@@ -1,0 +1,35 @@
+/**
+ * This is example file to provide syntax colorize support
+ * Author: Sergiy Samborskiy <salterok@gmail.com>
+ *
+ * // Some lines here
+ */
+Phase: Example
+Input: Lookup Token
+Input: Go
+// begin first rule
+
+Macro: sd
+(
+    {Token}
+): a 
+
+Rule: Prime
+Priority: 1
+(
+    (sd)
+    { Lookup.majorType == "number", Token.string == "one" } |
+    { Lookup.majorType == "number", Token.string == "two" } |
+    { Lookup.majorType == "number", Token.string == "tree" }
+): label2
+--> 
+:label.PrimeNumber = { rule = "Number" }
+
+Rule: NonPrime
+(
+    ( { Lookup.majorType == "number", Token.string == "four" } ): fourLabel
+    | { Lookup.majorType == "number", Token.string == "five" }
+): label2
+-->
+:label2.NotPrimeNumber = { rule = "Number", value = :label.Lookup.string },
+:fourLabel.ItsFour = { rule = "Number", value = "4" }

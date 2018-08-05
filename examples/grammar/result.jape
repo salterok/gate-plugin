@@ -1,0 +1,9 @@
+Phase: ResultMatcher
+Input: Ingredient
+
+Rule: Result
+(
+    ({ Ingredient }): ingredient
+): label
+--> 
+:labe.Result = { rule = "Ingredient", qty = :ingredient.Ingredient.qty, name = :ingredient.IngredientName.value }

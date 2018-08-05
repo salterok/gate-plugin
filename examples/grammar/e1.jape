@@ -9,19 +9,20 @@ Input: Lookup Token
 Input: Go
 // begin first rule
 
-// Macro: sd
-// (
-
-// ): a
+Macro: sd
+(
+    {Token}
+): a 
 
 Rule: Prime
 Priority: 1
 (
+    (sd)
     { Lookup.majorType == "number", Token.string == "one" } |
     { Lookup.majorType == "number", Token.string == "two" } |
     { Lookup.majorType == "number", Token.string == "tree" }
 ): label2
--->
+--> 
 :label.PrimeNumber = { rule = "Number" }
 
 Rule: NonPrime
