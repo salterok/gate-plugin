@@ -26,9 +26,11 @@
         "antlr4": "^4.7.1",
         "antlr4ts": "^0.5.0-alpha.8565fd2b",
         "antlr4ts-cli": "^0.4.0-canary.37504efa",
-        "functional-red-black-tree": "^1.0.1"
+        "functional-red-black-tree": "^1.0.1",
+        "lodash": "^4.17.10"
     },
     "devDependencies": {
+        "@types/lodash": "^4.14.116",
         "@types/node": "^9.4.6",
         "generator-code": "^1.1.25",
         "typescript": "^2.7.2",

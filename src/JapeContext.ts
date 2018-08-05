@@ -7,6 +7,7 @@
 
 import * as antlr4ts from "antlr4ts";
 import * as path from "path";
+import * as _ from "lodash";
 
 import { JapeParserVisitor } from "./JapeParserVisitor";
 import { SinglePhase, NodeRange, MultiPhase, Phase } from "./JapeSyntaxDefinitions";
@@ -17,7 +18,7 @@ export class JapeContext {
 
     private map = new Map<string, Phase>();
     private pipelineMap = new Map<string, TransducerPipeline>();
-    private pipelines: TransducerPipeline[] = [];
+    private pipeline: TransducerPipeline | undefined;
 
     constructor(private fileLoader: FileLoader) {
         
@@ -58,6 +59,8 @@ export class JapeContext {
     async loadPipelines(initialFile: string) {
         console.info(`loadPipelines`, initialFile);
         const files = [initialFile].concat(await this.fileLoader.allFiles("**/*.jape"));
+
+        const pipelines: TransducerPipeline[] = [];
         
         for (const file of files) {
             const meta = await this.fileLoader.load(file);
@@ -67,10 +70,14 @@ export class JapeContext {
             const phase = this.loadFromSource(file, meta.text);
 
             if (phase instanceof MultiPhase) {
-                const pipeline = await this.createPipeline(initialFile, phase);
-                this.pipelines.push(pipeline);
+                const pipeline = await this.createPipeline(file, phase);
+                pipelines.push(pipeline);
             }
         }
+
+        // select longest pipeline as root
+        // TODO: support multiple non-related pipelines
+        this.pipeline = _.maxBy(pipelines, pipeline => pipeline.phase.length);
     }
 
     private async createPipeline(filename: string, phase: MultiPhase): Promise<TransducerPipeline> {

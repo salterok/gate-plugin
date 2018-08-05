@@ -20,7 +20,12 @@ export class MultiPhase {
     name!: string;
     phaseNames!: string[];
 
-    phases!: Map<string, Phase>;
+    phases = new Map<string, Phase>();
+
+    get length(): number {
+        // do not count self as pipeline item
+        return Array.from(this.phases, ([_, phase]) => phase.length).reduce((acc, val) => acc + val, 0);
+    }
 }
 
 export class SinglePhase {
@@ -31,6 +36,8 @@ export class SinglePhase {
     macros!: Rule[];
     rules!: Rule[];
     // macros: Macro[];
+
+    public readonly length = 1;
 }
 
 export type Phase = SinglePhase | MultiPhase;

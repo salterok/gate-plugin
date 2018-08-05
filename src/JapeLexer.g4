@@ -1,9 +1,11 @@
 
 lexer grammar JapeLexer;
 
-tokens { JAVA_CODE }
+tokens { JAVA_CODE, PHASE_NAME }
 
 @lexer::members {
+private _multiPhase = false;
+private _phasesEntered = false;
 private _curlyBraceOpenCnt = 0;
 private _javaImports = false;
 private _rhsMode = false;
@@ -34,11 +36,12 @@ LINE_COMMENT
 	: '//' ~[\r\n]* -> skip
 	;
 
+MULTI_PHASE: 'MultiPhase' { this._multiPhase = true; };
+PHASES: 'Phases' { this._phasesEntered = true; };
+
 IMPORTS: 'Imports' { this._javaImports = true; };
 INPUT: 'Input';
 PHASE: 'Phase';
-MULTI_PHASE: 'MultiPhase';
-PHASES: 'Phases';
 OPTIONS: 'Options';
 RULE: 'Rule' { this._rhsMode = false; };
 MACRO: 'Macro' { this._rhsMode = false; };
@@ -72,13 +75,17 @@ GROUP_OPEN: '(';
 GROUP_CLOSE: ')';
 RANGE_OPEN: '[';
 RANGE_CLOSE: ']';
-ALIAS_SEPARATOR: ':';
+ALIAS_SEPARATOR: ':' {
+    if (this._multiPhase && this._phasesEntered) {
+        this.mode(JapeLexer.MULTI_PHASE_MODE);
+    };
+};
 RULE_ENTRY_OPEN: '{' {
     if (this._javaImports) {
-        this.pushMode(JapeLexer.JAVA_BLOCK)
+        this.pushMode(JapeLexer.JAVA_BLOCK_MODE)
     };
     if (this._rhsMode && !this._justHitAssignment) {
-        this.pushMode(JapeLexer.JAVA_BLOCK)
+        this.pushMode(JapeLexer.JAVA_BLOCK_MODE)
     };
     this._javaImports = false;
     this._justHitAssignment = false;
@@ -103,7 +110,7 @@ RHS_SEPARATOR: '-->' { this._rhsMode = true; };
 
 // OTHER: . -> skip;
 
-mode JAVA_BLOCK;
+mode JAVA_BLOCK_MODE;
 
 fragment BLOCK_CONTENT: ~[{}]+;
 
@@ -111,3 +118,10 @@ OPEN_BRACE: '{' { this._curlyBraceOpenCnt++; } -> more;
 CLOSE_BRACE: '}' { this.exitOnCloseBracketMatch(); };
 
 ANY: . -> more;
+
+mode MULTI_PHASE_MODE;
+
+PHASE_NAME: ~[\r\n]+;
+
+TO_SKIP: (BLOCK_COMMENT | LINE_COMMENT | WS | EOF) -> skip;
+

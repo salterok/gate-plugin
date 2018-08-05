@@ -19,7 +19,7 @@ multiPhaseDecl:
     MULTI_PHASE ALIAS_SEPARATOR IDENTIFIER;
 
 phasesDecl:
-    PHASES ALIAS_SEPARATOR IDENTIFIER*
+    PHASES ALIAS_SEPARATOR PHASE_NAME*
     ;
 
 // -------------- single phase -------------------

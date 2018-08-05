@@ -20,8 +20,7 @@ export class TransducerPipeline {
         this.japeCtx = japeCtx;
     }
 
-    addPhase(filename: string, phase: Phase): boolean {
-        const name = path.relative(this.filename, filename);
+    addPhase(name: string, phase: Phase): boolean {
         if (!this.phase.phaseNames.includes(name)) {
             return false;
         }

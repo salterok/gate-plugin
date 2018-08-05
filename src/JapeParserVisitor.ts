@@ -45,7 +45,7 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
     }
 
     visitPhasesDecl(ctx: P.PhasesDeclContext) {
-        return ctx.IDENTIFIER().map(node => node.text);
+        return ctx.PHASE_NAME().map(node => node.text);
     }
 
     visitSinglePhase(ctx: P.SinglePhaseContext): D.SinglePhase {
