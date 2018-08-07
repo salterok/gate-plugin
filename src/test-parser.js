@@ -1,11 +1,11 @@
 
 
 const fs = require("fs");
+const path = require("path");
 
-const antlr4 = require("antlr4");
 const antlr4ts = require("antlr4ts");
 
-const source = fs.readFileSync("E:\\Projects\\plugins\\gate-jape-plugin\\examples\\e1.jape", { encoding: "utf-8" });
+const source = fs.readFileSync(path.join(__dirname, "../examples/grammar/e1.jape"), { encoding: "utf-8" });
 
 const JapeParserVisitor = require("./JapeParserVisitor").JapeParserVisitor;
 
@@ -19,6 +19,9 @@ function test() {
     var chars = new antlr4ts.ANTLRInputStream(source);
     var lexer = new cLexer.JapeLexer(chars);
     var tokens = new antlr4ts.CommonTokenStream(lexer);
+    tokens.fill();
+
+    global.asd = tokens;
     var parser = new cParser.JapeParser(tokens);
     // parser.buildParseTrees = true;
     // parser.buildParseTree(true);

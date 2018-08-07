@@ -2,11 +2,11 @@
  * @Author: salterok 
  * @Date: 2018-02-15 23:21:27 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-07-17 18:03:48
+ * @Last Modified time: 2018-08-07 16:59:42
  */
 
 import * as vscode from "vscode";
-
+import _ = require("lodash");
 import { CompletionItemKind } from "vscode";
 
 import "./ErrorPatcher";
@@ -40,10 +40,10 @@ export function activate(context: vscode.ExtensionContext) {
         ),
     );
 
-    // const activeTextEditor = vscode.window.activeTextEditor;
-    // if (activeTextEditor) {
-    //     japeCtx.loadPipelines(activeTextEditor.document.fileName).catch(console.error);
-    // }
+    const activeTextEditor = vscode.window.activeTextEditor;
+    if (activeTextEditor) {
+        japeCtx.loadPipelines(activeTextEditor.document.fileName).catch(console.error);
+    }
 
     vscode.workspace.onDidChangeTextDocument(e => {
         // console.log("Edit", e.document.fileName, e.contentChanges);
@@ -71,6 +71,24 @@ class JapeCompletionItemProvider implements vscode.CompletionItemProvider {
                         rule.block.aliases.map(
                             a => new vscode.CompletionItem(a, CompletionItemKind.Reference)
                         )
+                    );
+                }
+            }
+            if (char === JapeContext.getLiteral(JapeLexer.ACCESSOR)) {
+                const rule = japeCtx.findRule(document.fileName, position.line);
+                if (rule) {
+                    const token = japeCtx.getTokenBefore(document.fileName, document.offsetAt(position.translate(0, -1)), JapeLexer.IDENTIFIER);
+
+                    if (!token) {
+                        return null as any;
+                    }
+
+                    const annotations = japeCtx.findAnnotations(token.text || "");
+                    
+                    return Promise.resolve(
+                        _.flatten(annotations.map(
+                            a => a.features.map(f => new vscode.CompletionItem(f.name, CompletionItemKind.Field))
+                        ))
                     );
                 }
             }

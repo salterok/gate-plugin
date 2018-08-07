@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-07-17 19:12:26
+ * @Last Modified time: 2018-08-07 16:21:44
  */
 
 import * as antlr4ts from "antlr4ts";
@@ -10,13 +10,15 @@ import * as path from "path";
 import * as _ from "lodash";
 
 import { JapeParserVisitor } from "./JapeParserVisitor";
-import { SinglePhase, NodeRange, MultiPhase, Phase } from "./JapeSyntaxDefinitions";
+import { SinglePhase, NodeRange, MultiPhase, Phase, Annotation } from "./JapeSyntaxDefinitions";
 import { JapeLexer } from "./parser/JapeLexer";
+import { JapeParser } from "./parser/JapeParser";
 import { TransducerPipeline } from "./TransducerPipeline";
 
 export class JapeContext {
 
     private map = new Map<string, Phase>();
+    private meta = new Map<string, antlr4ts.CommonTokenStream>();
     private pipelineMap = new Map<string, TransducerPipeline>();
     private pipeline: TransducerPipeline | undefined;
 
@@ -26,25 +28,25 @@ export class JapeContext {
 
     loadFromSource(key: string, source: string) {
         console.time(`Parsing ${key}`);
-        const cLexer = require("./parser/JapeLexer");
-        const cParser = require("./parser/JapeParser");
 
         // const chars = new antlr4.InputStream(source);
         const chars = new antlr4ts.ANTLRInputStream(source);
-        const lexer = new cLexer.JapeLexer(chars);
+        const lexer = new JapeLexer(chars);
         const tokens = new antlr4ts.CommonTokenStream(lexer);
-        const parser = new cParser.JapeParser(tokens);
+        const parser = new JapeParser(tokens);
         // parser.addParseListener(new JapeParserVisitor());
-        parser.buildParseTrees = true;
+        // parser.buildParseTree = true;
+        // parser.buildParseTrees = true;
 
         try {
             const tree = parser.program();
-
+            
             const visitor = new JapeParserVisitor();
 
             const result = visitor.visit(tree);
 
             this.map.set(key, result);
+            this.meta.set(key, tokens);
             
             return result;
         }
@@ -129,7 +131,7 @@ export class JapeContext {
         for (let index = 0; index < tree.rules.length; index++) {
             const rule = tree.rules[index];
 
-            if (position >= rule.range.start.line && position < rule.range.end.line) {
+            if (position >= rule.range.start.line && position <= rule.range.end.line) {
                 return tree.rules[index];
             }
 
@@ -137,6 +139,40 @@ export class JapeContext {
                 return tree.rules[index - 1];
             }
         }
+    }
+
+    getTokenBefore(key: string, index: number, token: number) {
+        const stream = this.meta.get(key);
+        if (!stream) {
+            return null;
+        }
+
+        const tokenAfter = stream.getTokens().find(t => t.startIndex >= index || (t.startIndex <= index && t.stopIndex >= index));
+        if (!tokenAfter) {
+            return null;
+        }
+        const targetToken = stream.get(tokenAfter.tokenIndex - 1);
+        
+        return targetToken;
+    }
+
+    findAnnotations(name: string): Annotation[] {
+        if (!this.pipeline) {
+            return [];
+        }
+
+        function findInMultiPhase(phase: MultiPhase): Annotation[] {
+            const items = Array.from(phase.phases.values())
+                .map(phase => 
+                    phase instanceof SinglePhase 
+                        ? phase.rules.map(rule => rule.annotations.filter(a => a.name === name))
+                        : findInMultiPhase(phase)
+                );
+
+            return _.flattenDeep(items).filter(i => i) as Annotation[];
+        }
+
+        return findInMultiPhase(this.pipeline.phase);
     }
 
     getReference(key: string, name: string, context: "annotation" | "macro"): JapeSymbolReference | null {
