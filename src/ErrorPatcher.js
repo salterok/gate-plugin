@@ -2,8 +2,8 @@
 const RealError = Error;
 
 class ExtendableError extends Error {
-    constructor () {
-        super ()
+    constructor (message) {
+        super(message);
         // a workaround to make `instanceof ExtendableError` work in ES5
         this.constructor = ExtendableError;
         this.__proto__   = ExtendableError.prototype;
