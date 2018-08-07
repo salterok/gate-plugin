@@ -19,7 +19,7 @@ private exitOnCloseBracketMatch() {
     }
     this._curlyBraceOpenCnt = 0;
     this._input.seek(this.inputStream.index - 1);
-    this.type = this.constructor.JAVA_CODE;
+    this.type = JapeLexer.JAVA_CODE;
     this.emit();
     this.popMode();
 }
