@@ -2,7 +2,7 @@
     "name": "gate-plugin",
     "displayName": "Gate plugin",
     "description": "Add gate development support to your favorite editor",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "author": "Sergiy Samborskiy <salterok@gmail.com>",
     "publisher": "SergiySamborskiy",
     "repository": {
@@ -44,6 +44,48 @@
     ],
     "main": "./out/extension",
     "contributes": {
+        "configuration": [
+            {
+                "type": "object",
+                "title": "GATE plugin",
+                "properties": {
+                    "gate-plugin.unstable": {
+                        "type": "object",
+                        "properties": {
+                            "loadPipelines": {
+                                "enum": [
+                                    true,
+                                    false
+                                ],
+                                "default": false
+                            },
+                            "enableCompletions": {
+                                "enum": [
+                                    true,
+                                    false
+                                ],
+                                "default": false
+                            },
+                            "enableSymbols": {
+                                "enum": [
+                                    true,
+                                    false
+                                ],
+                                "default": false
+                            },
+                            "enableDifinitions": {
+                                "enum": [
+                                    true,
+                                    false
+                                ],
+                                "default": false
+                            }
+                        }
+
+                    }
+                }
+            }  
+        ],
         "languages": [
             {
                 "id": "jape",

@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-19 23:27:35 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-07-17 17:16:38
+ * @Last Modified time: 2018-08-09 00:18:56
  */
 
 import { JapeParserVisitor as IJapeParserVisitor } from "./parser/JapeParserVisitor";
@@ -45,7 +45,7 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
     }
 
     visitPhasesDecl(ctx: P.PhasesDeclContext) {
-        return ctx.PHASE_NAME().map(node => node.text);
+        return ctx.PHASE_NAME().map(node => node.text.trim());
     }
 
     visitSinglePhase(ctx: P.SinglePhaseContext): D.SinglePhase {
