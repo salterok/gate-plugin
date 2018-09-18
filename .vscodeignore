@@ -1,5 +1,6 @@
 **/*
 !syntaxes/*
+!out/**
 !icon.png
 !language-configuration.json
 !LICENSE
