@@ -109,7 +109,8 @@ japeRhs
     ;
 
 japeRhsAnnotation
-    : RULE_ENTRY_OPEN japeRhsAnnotationField (ENTRIES_SEPARATOR japeRhsAnnotationField)* RULE_ENTRY_CLOSE
+    : RULE_ENTRY_OPEN RULE_ENTRY_CLOSE
+    | RULE_ENTRY_OPEN japeRhsAnnotationField (ENTRIES_SEPARATOR japeRhsAnnotationField)* RULE_ENTRY_CLOSE
     ;
 
 japeRhsAnnotationField
