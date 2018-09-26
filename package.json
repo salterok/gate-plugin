@@ -17,19 +17,17 @@
     "scripts": {
         "build-parser": "cmd /C build-parser.cmd",
         "vscode:prepublish": "npm install & npm run compile",
-        "compile": "build-parser.cmd & tsc -p ./",
+        "compile": "build-parser.cmd & tsc -p ./ --sourceMap false",
         "watch": "tsc -watch -p ./",
         "postinstall": "node ./node_modules/vscode/bin/install",
         "test": "npm run compile && node ./node_modules/vscode/bin/test"
     },
     "dependencies": {
-        "antlr4": "^4.7.1",
         "antlr4ts": "^0.5.0-alpha.8565fd2b",
-        "antlr4ts-cli": "^0.4.0-canary.37504efa",
-        "functional-red-black-tree": "^1.0.1",
         "lodash": "^4.17.10"
     },
     "devDependencies": {
+        "antlr4ts-cli": "^0.4.0-canary.37504efa",
         "@types/lodash": "^4.14.116",
         "@types/node": "^9.4.6",
         "generator-code": "^1.1.25",
@@ -81,10 +79,9 @@
                                 "default": false
                             }
                         }
-
                     }
                 }
-            }  
+            }
         ],
         "languages": [
             {
