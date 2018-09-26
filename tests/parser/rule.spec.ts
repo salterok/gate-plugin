@@ -49,6 +49,54 @@ describe("parser", function() {
 
         });
         
+        describe.skip("context", function() {
+
+            const text = `
+                Rule: YearContext1
+                (
+                    {Token.string == "in"} |
+                    {Token.string == "by"} 
+                )
+                (YEAR)
+                :date -->
+                :date.Timex = {kind = "date", rule = "YearContext1"}
+            `;
+
+            const text2 = `
+                Macro: Emailaddress1
+                (
+                    {Token.string == ‘<’}
+                )
+                (
+                    (EMAIL)
+                )
+                :email
+                (
+                    {Token.string == ‘>’}
+                )
+            `;
+
+            it("behind", function() {
+                const result = parseRule(text);
+        
+                assert.equal(result.name, "IngredientName");
+            });
+
+
+
+            it("ahead", function() {
+                const result = parseRule(text2);
+        
+                assert.equal(result.name, "IngredientName");
+            });
+
+            it("behind & ahead", function() {
+                const result = parseRule(text2);
+        
+                assert.equal(result.name, "IngredientName");
+            });
+
+        });
     });
 
     describe("rule entry", function() {
@@ -102,14 +150,36 @@ describe("parser", function() {
 
         it("only type", function() {
             const text = `
-                Lookup
+                { Lookup }
             `;
 
-            const result = parseRuleClause(text);
+            const result = parseRuleEntry(text);
 
-            assert.sameOrderedMembers(result.path, ["Lookup"]);
-            assert.equal(result.operation, undefined);
-            assert.equal(result.value, undefined);
+            assert.sameOrderedMembers(result.clauses[0].path, ["Lookup"]);
+            assert.equal(result.clauses[0].operation, undefined);
+            assert.equal(result.clauses[0].value, undefined);
+        });
+
+        it("only type negation", function() {
+            const text = `
+                { !Lookup }
+            `;
+
+            const result = parseRuleEntry(text);
+
+            assert.sameOrderedMembers(result.clauses[0].path, ["Lookup"]);
+            assert.equal(result.clauses[0].operation, undefined);
+            assert.equal(result.clauses[0].value, undefined);
+        });
+
+        it("constraint negation", function() {
+            const text = `
+                { !Token.string ==~ "[Dd]e" }
+            `;
+
+            const result = parseRuleEntry(text);
+
+            assert.sameOrderedMembers(result.clauses[0].path, ["Token", "string"]);
         });
 
         it("only type custom", function() {
@@ -214,8 +284,31 @@ describe("parser", function() {
                 assert.equal(result.clauses[1].operation, "notWithin");
             });
 
+            it("within other constraint", function() {
+                const text = `
+                    { X within { Y.foo == bar } }
+                `;
+
+                const result = parseRuleEntry(text);
+
+                assert.equal(result.clauses[0].operation, "contains");
+            });
+
         });
 
+        describe("meta properties", function() {
+            it.skip("", function() {
+                const text = `
+                    { Lookup@length > 5, Lookup@string ==~ "\s*Text", Lookup@cleanString ==~ "Text" }
+                `;
+    
+                const result = parseRuleEntry(text);
+    
+                assert.sameOrderedMembers(result.clauses[0].path, ["Lookup", "length"]);
+                assert.equal(result.clauses[1].path, ["Lookup", "string"]);
+                assert.equal(result.clauses[2].path, ["Lookup", "cleanString"]);
+            });
+        });
         
 
         it.skip("", function() {
