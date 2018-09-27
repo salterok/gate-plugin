@@ -1,10 +1,13 @@
 
 const RealError = Error;
 
-function ExtendableError() { 
-    var error = RealError.apply(this, arguments);
-    return error;
-}
-ExtendableError.prototype = new RealError();
+function ExtendableError(message, extra) {
+    RealError.captureStackTrace(this, this.constructor);
+    this.name = this.constructor.name;
+    this.message = message;
+    this.extra = extra;
+};
+  
+require("util").inherits(ExtendableError, RealError);
 
 global.Error = ExtendableError;
