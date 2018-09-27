@@ -5,8 +5,15 @@
  * @Last Modified time: 2018-07-17 14:51:32
  */
 
-import { ParserRuleContext } from "antlr4ts";
+import { ParserRuleContext, CommonTokenStream } from "antlr4ts";
 import { Place } from "./utils";
+
+export class Module<P = Phase> {
+    filename: string;
+    version: number;
+    phase: P;
+    tokenStream: CommonTokenStream;
+}
 
 class SourceBlock {
     readonly range: NodeRange;
@@ -19,13 +26,6 @@ class SourceBlock {
 export class MultiPhase {
     name!: string;
     phaseNames!: string[];
-
-    phases = new Map<string, Phase>();
-
-    get length(): number {
-        // do not count self as pipeline item
-        return Array.from(this.phases, ([_, phase]) => phase.length).reduce((acc, val) => acc + val, 0);
-    }
 }
 
 export class SinglePhase {

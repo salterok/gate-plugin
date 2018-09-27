@@ -2,7 +2,7 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2018-08-08 23:45:29 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-08-08 23:49:38
+ * @Last Modified time: 2018-09-27 20:21:01
  */
 
 import * as vscode from "vscode";
@@ -31,6 +31,7 @@ export class JapeCompletionItemProvider implements vscode.CompletionItemProvider
                 }
             }
             if (char === JapeContext.getLiteral(JapeLexer.ACCESSOR)) {
+                // TODO: check if looking into specific annotation in lhs or into label in rhs
                 const rule = japeCtx.findRule(document.fileName, position.line);
                 if (rule) {
                     const token = japeCtx.getTokenBefore(document.fileName, document.offsetAt(position.translate(0, -1)), JapeLexer.IDENTIFIER);

@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-15 23:21:27 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-08-09 00:02:35
+ * @Last Modified time: 2018-09-27 19:09:55
  */
 
 import * as vscode from "vscode";
@@ -55,13 +55,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.workspace.onDidChangeTextDocument(e => {
         if (e.document.languageId === "jape" || e.document.fileName.endsWith(".jape")) {
-            japeCtx.loadFromSource(e.document.fileName, e.document.getText());
+            japeCtx.load(e.document.fileName, e.document.version, e.document.getText());
         }
     });
     vscode.workspace.onDidOpenTextDocument(e => {
         if (e.languageId === "jape" || e.fileName.endsWith(".jape")) {
-            console.log("Open", e.fileName);
-            japeCtx.loadFromSource(e.fileName, e.getText());
+            japeCtx.load(e.fileName, e.version, e.getText());
         }
     });
 }

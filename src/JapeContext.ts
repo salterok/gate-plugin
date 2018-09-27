@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-08-07 16:21:44
+ * @Last Modified time: 2018-09-27 20:12:20
  */
 
 import * as antlr4ts from "antlr4ts";
@@ -10,15 +10,14 @@ import * as path from "path";
 import * as _ from "lodash";
 
 import { JapeParserVisitor } from "./JapeParserVisitor";
-import { SinglePhase, NodeRange, MultiPhase, Phase, Annotation } from "./JapeSyntaxDefinitions";
+import { Module, SinglePhase, NodeRange, MultiPhase, Phase, Annotation } from "./JapeSyntaxDefinitions";
 import { JapeLexer } from "./parser/JapeLexer";
 import { JapeParser } from "./parser/JapeParser";
 import { TransducerPipeline } from "./TransducerPipeline";
 
 export class JapeContext {
 
-    private map = new Map<string, Phase>();
-    private meta = new Map<string, antlr4ts.CommonTokenStream>();
+    private map = new Map<string, Module>();
     private pipelineMap = new Map<string, TransducerPipeline>();
     private pipeline: TransducerPipeline | undefined;
 
@@ -26,36 +25,51 @@ export class JapeContext {
         
     }
 
-    loadFromSource(key: string, source: string) {
-        console.time(`Parsing ${key}`);
-
-        // const chars = new antlr4.InputStream(source);
-        const chars = new antlr4ts.ANTLRInputStream(source);
-        const lexer = new JapeLexer(chars);
-        const tokens = new antlr4ts.CommonTokenStream(lexer);
-        const parser = new JapeParser(tokens);
-        // parser.addParseListener(new JapeParserVisitor());
-        // parser.buildParseTree = true;
-        // parser.buildParseTrees = true;
+    load(key: string, version: number, source: string) {
+        console.log("Load", version, key);
+        let module = this.map.get(key);
+        if (module && module.version === version) {
+            return module;
+        }
 
         try {
-            const tree = parser.program();
-            
-            const visitor = new JapeParserVisitor();
+            console.time(`Parsing ${key}`);
+            const result = this.parse(source);
 
-            const result = visitor.visit(tree);
+            if (!module) {
+                module = {} as Module;
+                this.map.set(key, module);
+            }
 
-            this.map.set(key, result);
-            this.meta.set(key, tokens);
-            
-            return result;
+            module.version = version;
+            module.phase = result.phase;
+            module.tokenStream = result.tokenStream;
+
+            return module;
         }
         catch (err) {
-            console.error(key, err);
+            console.error(key, err.message);
         }
         finally {
             console.timeEnd(`Parsing ${key}`);
         }
+
+    }
+
+    parse(source: string): Pick<Module, "phase" | "tokenStream"> {
+        const chars = new antlr4ts.ANTLRInputStream(source);
+        const lexer = new JapeLexer(chars);
+        const tokenStream = new antlr4ts.CommonTokenStream(lexer);
+        const parser = new JapeParser(tokenStream);
+
+        const tree = parser.program();
+        const visitor = new JapeParserVisitor();
+        const phase = visitor.visit(tree);
+        
+        return {
+            phase,
+            tokenStream,
+        };
     }
 
     async loadPipelines(initialFile: string) {
@@ -69,54 +83,56 @@ export class JapeContext {
             if (!meta) {
                 continue;
             }
-            const phase = this.loadFromSource(file, meta.text);
+            const module = this.load(file, meta.version, meta.text);
 
-            if (phase instanceof MultiPhase) {
-                const pipeline = await this.createPipeline(file, phase);
+            if (!module) {
+                continue;
+            }
+
+            if (module.phase instanceof MultiPhase) {
+                const pipeline = await this.createPipeline(file, module as Module<MultiPhase>);
                 pipelines.push(pipeline);
             }
         }
 
         // select longest pipeline as root
         // TODO: support multiple non-related pipelines
-        this.pipeline = _.maxBy(pipelines, pipeline => pipeline.phase.length);
+        this.pipeline = _.maxBy(pipelines, pipeline => pipeline.length);
     }
 
-    private async createPipeline(filename: string, phase: MultiPhase): Promise<TransducerPipeline> {
-        console.info(`MultiPhase ${phase.name} found in ${filename}. Creating pipeline with ${phase.phaseNames.length} entries`);
+    private async createPipeline(filename: string, module: Module<MultiPhase>): Promise<TransducerPipeline> {
+        console.info(`MultiPhase ${module.phase.name} found in ${filename}. Creating pipeline with ${module.phase.phaseNames.length} entries`);
         let pipeline = this.pipelineMap.get(filename);
         if (pipeline) {
             return pipeline;
         }
 
-        pipeline = new TransducerPipeline(filename, phase, this);
+        pipeline = new TransducerPipeline(filename, module, this);
 
         const dirname = path.dirname(filename);
         
-        for (const phaseName of phase.phaseNames) {
+        for (const phaseName of module.phase.phaseNames) {
             const filePath = path.join(dirname, phaseName + ".jape");
-            const phase = this.map.get(filePath);
-            
-            // this.pipelineMap.delete(filePath);
+            let module = this.map.get(filePath);
 
-            if (phase) {
-                pipeline.addPhase(phaseName, phase);
-            }
-            else {
+            if (!module) {
                 const meta = await this.fileLoader.load(filePath);
                 if (meta) {
-                    const phase = this.loadFromSource(filePath, meta.text);
-                    if (phase instanceof MultiPhase) {
-                        const innerPipeline = await this.createPipeline(filePath, phase);
-                        console.info(`Rollup inner pipeline ${innerPipeline.phase.name} into ${phaseName} entry of ${pipeline.phase.name}`);
-                        pipeline.addPhase(phaseName, innerPipeline.phase);
-                    }
-                    else {
-                        if (phase) {
-                            pipeline.addPhase(phaseName, phase);
-                        }
-                    }
+                    module = this.load(filePath, meta.version, meta.text);
                 }
+            }
+            
+            if (!module) {
+                continue;
+            }
+
+            if (module.phase instanceof MultiPhase) {
+                const innerPipeline = await this.createPipeline(filePath, module as Module<MultiPhase>);
+                console.info(`Insert inner pipeline ${innerPipeline.module.phase.name} into ${phaseName} entry of ${pipeline.module.phase.name}`);
+                pipeline.addChild(phaseName, innerPipeline);
+            }
+            else {
+                pipeline.addChild(phaseName, module as Module<SinglePhase>);
             }
         }
 
@@ -142,10 +158,11 @@ export class JapeContext {
     }
 
     getTokenBefore(key: string, index: number, token: number) {
-        const stream = this.meta.get(key);
-        if (!stream) {
+        const module = this.map.get(key);
+        if (!module) {
             return null;
         }
+        const stream = module.tokenStream;
 
         const tokenAfter = stream.getTokens().find(t => t.startIndex >= index || (t.startIndex <= index && t.stopIndex >= index));
         if (!tokenAfter) {
@@ -161,18 +178,15 @@ export class JapeContext {
             return [];
         }
 
-        function findInMultiPhase(phase: MultiPhase): Annotation[] {
-            const items = Array.from(phase.phases.values())
-                .map(phase => 
-                    phase instanceof SinglePhase 
-                        ? phase.rules.map(rule => rule.annotations.filter(a => a.name === name))
-                        : findInMultiPhase(phase)
-                );
+        const annotations: Annotation[] = [];
+        this.pipeline.traverse(module => {
+            module.phase.rules.map(rule => {
+                const items = rule.annotations.filter(a => a.name === name);
+                annotations.push(...items);
+            });
+        });
 
-            return _.flattenDeep(items).filter(i => i) as Annotation[];
-        }
-
-        return findInMultiPhase(this.pipeline.phase);
+        return annotations;
     }
 
     getReference(key: string, name: string, context: "annotation" | "macro"): JapeSymbolReference | null {
@@ -216,8 +230,8 @@ export class JapeContext {
 
     _get(key: string): SinglePhase | null {
         const tree = this.map.get(key);
-        if (tree instanceof SinglePhase) {
-            return tree;
+        if (tree && tree.phase instanceof SinglePhase) {
+            return tree.phase;
         }
         return null;
     }

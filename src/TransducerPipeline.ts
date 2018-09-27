@@ -7,28 +7,54 @@
 
 import { JapeContext } from "./JapeContext";
 import * as path from "path";
-import { Phase, MultiPhase } from "./JapeSyntaxDefinitions";
+import { Module, Phase, SinglePhase, MultiPhase } from "./JapeSyntaxDefinitions";
+
+type Child = Module<SinglePhase> | TransducerPipeline;
 
 export class TransducerPipeline {
     private japeCtx: JapeContext;
     public filename: string;
-    public phase: MultiPhase;
-    
-    constructor(filename: string, phase: MultiPhase, japeCtx: JapeContext) {
+    public module: Module<MultiPhase>;
+
+    childModules = new Map<string, Child>();
+
+    constructor(filename: string, module: Module<MultiPhase>, japeCtx: JapeContext) {
         this.filename = filename;
-        this.phase = phase;
+        this.module = module;
         this.japeCtx = japeCtx;
     }
 
-    addPhase(name: string, phase: Phase): boolean {
-        if (!this.phase.phaseNames.includes(name)) {
+    get length(): number {
+        // do not count self as pipeline item
+        return Array
+            .from(this.childModules, ([_, child]) => child instanceof TransducerPipeline ? child.length : 1)
+            .reduce((acc, val) => acc + val, 0);
+    }
+
+    addChild(name: string, child: Child): boolean {
+        if (!this.module.phase.phaseNames.includes(name)) {
             return false;
         }
 
-        if (!this.phase.phases.has(name)) {
-            this.phase.phases.set(name, phase);
+        if (!this.childModules.has(name)) {
+            this.childModules.set(name, child);
         }
         return true;
+    }
+
+    traverse<T>(mapper: (module: Module<SinglePhase>) => T): T[] {
+        const items: T[] = [];
+
+        for (const child of this.childModules.values()) {
+            if (child instanceof TransducerPipeline) {
+                items.push(...child.traverse(mapper));
+            }
+            else {
+                items.push(mapper(child));
+            }
+        }
+
+        return items;
     }
 }
 
