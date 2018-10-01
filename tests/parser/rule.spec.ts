@@ -2,7 +2,7 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2018-09-25 19:07:45 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-09-25 20:27:01
+ * @Last Modified time: 2018-09-28 16:29:23
  */
 
 import { assert } from "chai";
@@ -19,9 +19,9 @@ function parseRuleEntry(text: string) {
     });
 }
 
-function parseRuleClause(text: string) {
+function parseRuleGroup(text: string) {
     return parse(text, (parser, visitor) => {
-        return visitor.visitRuleClause(parser.ruleClause());
+        return visitor.visitRuleBlock(parser.ruleBlock());
     });
 }
 
@@ -138,14 +138,14 @@ describe("parser", function() {
 
         it("full", function() {
             const text = `
-                Lookup.majorType == "ingredient"
+                { Lookup.majorType == "ingredient" }
             `;
 
-            const result = parseRuleClause(text);
+            const result = parseRuleEntry(text);
 
-            assert.sameOrderedMembers(result.path, ["Lookup", "majorType"]);
-            assert.equal(result.operation, "==");
-            assert.equal(result.value, '"ingredient"');
+            assert.sameOrderedMembers(result.clauses[0].path, ["Lookup", "majorType"]);
+            assert.equal(result.clauses[0].operation, "==");
+            assert.equal(result.clauses[0].value, '"ingredient"');
         });
 
         it("only type", function() {
@@ -310,17 +310,131 @@ describe("parser", function() {
             });
         });
         
+    });
 
-        it.skip("", function() {
+    describe.skip("rule group", function() {
+
+        it("regular", function() {
             const text = `
-                Lookup.majorType == "ingredient"
+                (
+                    { Lookup@length > 5 }
+                )
             `;
 
-            const result = parseRuleClause(text);
-
-            assert.equal(result.operation, "==");
+            const result = parseRuleGroup(text);
         });
 
+        it("named", function() {
+            const text = `
+                (
+                    { Lookup@length > 5 }
+                ): name
+            `;
+
+            const result = parseRuleGroup(text);
+            
+        });
+
+        describe.skip("multiple entries", function() {
+
+            it("AND", function() {
+                const text = `
+                    (
+                        { Lookup@length > 5 }
+                        { Lookup@length > 5 }
+                        { Lookup@length > 5 }
+                    )
+                `;
+    
+                const result = parseRuleGroup(text);
+                
+            });
+
+            it("OR", function() {
+                const text = `
+                    (
+                        { Lookup@length > 5 } |
+                        { Lookup@length > 5 }
+                    )
+                `;
+    
+                const result = parseRuleGroup(text);
+                
+            });
+
+        });
+
+        describe.skip("kleene operators", function() {
+
+            it("zero or more", function() {
+                const text = `
+                    (
+                        { Lookup@length > 5 }
+                    )*
+                `;
+    
+                const result = parseRuleGroup(text);
+                
+            });
+
+            it("one or more", function() {
+                const text = `
+                    (
+                        { Lookup@length > 5 }
+                    )+
+                `;
+    
+                const result = parseRuleGroup(text);
+                
+            });
+
+            it("optional", function() {
+                const text = `
+                    (
+                        { Lookup@length > 5 }
+                    )?
+                `;
+    
+                const result = parseRuleGroup(text);
+                
+            });
+
+            it("range", function() {
+                const text = `
+                    (
+                        { Lookup@length > 5 }
+                    )[1,3]
+                `;
+    
+                const result = parseRuleGroup(text);
+                
+            });
+
+            it("range exact", function() {
+                const text = `
+                    (
+                        { Lookup@length > 5 }
+                    )[3]
+                `;
+    
+                const result = parseRuleGroup(text);
+                
+            });
+
+        });
+
+        it("nested", function() {
+            const text = `
+                (
+                    (
+                        { Lookup@length > 5 }
+                    ): inner_name
+                ): outer_name
+            `;
+
+            const result = parseRuleGroup(text);
+            
+        });
     });
     
 
