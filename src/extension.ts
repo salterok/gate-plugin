@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-15 23:21:27 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-09-27 19:09:55
+ * @Last Modified time: 2018-10-12 17:58:12
  */
 
 import * as vscode from "vscode";
@@ -37,7 +37,7 @@ export function activate(context: vscode.ExtensionContext) {
         );
     }
 
-    if (unstableFeatures.get<boolean>("enableDifinitions") === true) {
+    if (unstableFeatures.get<boolean>("enableDefinitions") === true) {
         context.subscriptions.push(
             vscode.languages.registerDefinitionProvider(
                 JAPE_MODE, 
