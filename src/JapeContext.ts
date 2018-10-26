@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-09-27 20:12:20
+ * @Last Modified time: 2018-10-25 18:05:26
  */
 
 import * as antlr4ts from "antlr4ts";
@@ -74,6 +74,12 @@ export class JapeContext {
 
     async loadPipelines(initialFile: string) {
         console.info(`loadPipelines`, initialFile);
+
+        const { telemetry } = await import("./telemetry");
+        // telemetry.info();
+
+        const start = Date.now();
+
         const files = [initialFile].concat(await this.fileLoader.allFiles("**/*.jape"));
 
         const pipelines: TransducerPipeline[] = [];
@@ -98,6 +104,8 @@ export class JapeContext {
         // select longest pipeline as root
         // TODO: support multiple non-related pipelines
         this.pipeline = _.maxBy(pipelines, pipeline => pipeline.length);
+        
+        telemetry.notifyPipelineStats(Date.now() - start, { phasesCnt: this.pipeline!.length, multiPhasesCtn: pipelines.length, pipelineDepth: this.pipeline!.depth });
     }
 
     private async createPipeline(filename: string, module: Module<MultiPhase>): Promise<TransducerPipeline> {

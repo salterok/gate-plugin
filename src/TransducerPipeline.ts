@@ -2,7 +2,7 @@
 * @Author: Sergiy Samborskiy 
 * @Date: 2018-07-17 13:02:36 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-07-17 19:11:17
+ * @Last Modified time: 2018-10-25 18:03:10
 */
 
 import { JapeContext } from "./JapeContext";
@@ -29,6 +29,15 @@ export class TransducerPipeline {
         return Array
             .from(this.childModules, ([_, child]) => child instanceof TransducerPipeline ? child.length : 1)
             .reduce((acc, val) => acc + val, 0);
+    }
+
+    get depth(): number {
+        const depths = Array
+            .from(this.childModules.values())
+            .filter((child) => child instanceof TransducerPipeline)
+            .map((phase: TransducerPipeline) => phase.depth);
+
+        return Math.max(...depths, 0) + 1;
     }
 
     addChild(name: string, child: Child): boolean {
