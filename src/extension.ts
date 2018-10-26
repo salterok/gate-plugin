@@ -2,16 +2,47 @@
  * @Author: salterok 
  * @Date: 2018-02-15 23:21:27 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-10-12 17:58:12
+ * @Last Modified time: 2018-10-26 18:37:22
  */
 
 import * as vscode from "vscode";
+
+import { prepareBinaryDependency } from "./telemetry/loader";
+
+
+// TODO: save info that binary already prepared for next runs
+// show text: Finishing VS Gate Plugin installation
+const loading = prepareBinaryDependency();
+
+process.on("unhandledRejection", function() {
+    console.log("unhandledRejection", arguments)
+});
+
+
 import "./ErrorPatcher";
 
 import { japeCtx } from "./VsCodeContext";
 import { JapeCompletionItemProvider, JapeDocumentSymbolProvider, JapeDefinitionProvider } from "./providers";
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
+    await loading;
+    const { telemetry } = await import("./telemetry");
+    // telemetry.info();
+
+    await vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: "Finishing VS Gate Plugin installation..." }, (p) => {
+        return new Promise((resolve, reject) => {
+            let b = 0;
+            let a = setInterval(() => {
+                b++;
+                p.report({ message: b < 5 ? "Fist!!!" : "Last!!!" });
+                if (b > 10) {
+                    clearInterval(a);
+                    resolve();
+                }
+            }, 1000);
+        });
+    });
+
     
     const unstableFeatures = vscode.workspace.getConfiguration("gate-plugin.unstable");
 
