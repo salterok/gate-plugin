@@ -2,22 +2,26 @@
  * @Author: salterok 
  * @Date: 2018-02-15 23:21:27 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-10-26 18:37:22
+ * @Last Modified time: 2018-11-16 21:17:45
  */
+
+// const moduleAlias = require("module-alias");
+
+// moduleAlias.addAlias("grpc", "@grpc/grpc-js");
 
 import * as vscode from "vscode";
 
-import { prepareBinaryDependency } from "./telemetry/loader";
+
+console.log("electron version:", process.versions.electron);
+console.log("process.versions", process.versions);
 
 
-// TODO: save info that binary already prepared for next runs
-// show text: Finishing VS Gate Plugin installation
-const loading = prepareBinaryDependency();
 
 process.on("unhandledRejection", function() {
     console.log("unhandledRejection", arguments)
 });
 
+import { prepareTelemetry } from "./telemetry/loader";
 
 import "./ErrorPatcher";
 
@@ -25,9 +29,40 @@ import { japeCtx } from "./VsCodeContext";
 import { JapeCompletionItemProvider, JapeDocumentSymbolProvider, JapeDefinitionProvider } from "./providers";
 
 export async function activate(context: vscode.ExtensionContext) {
-    await loading;
+    const config = vscode.workspace.getConfiguration("gate-plugin");
+
+    
+    const TELEMETRY_ALLOWED_FLAG = "telemetry.allowed";
+    const telemetryEnabled = vscode.workspace.getConfiguration("telemetry").get<boolean>("enableTelemetry") || config.get<boolean>(TELEMETRY_ALLOWED_FLAG);
+
+    // const loading = prepareTelemetry(telemetryEnabled);
+
+    // if (typeof loading.then === "function") {
+
+    // }
+
+
+    // in case telemetryEnabled = false user does not give an answer yet
+    if (telemetryEnabled === undefined) {
+        const ALLOW_OPTION = "Allow for this extension";
+        const userResponse = vscode.window.showInformationMessage("Some experimental features has been disabled as telemetry gathering disabled in your workspace " + telemetryEnabled, "Let it be", ALLOW_OPTION);
+
+        userResponse.then(decision => {
+            console.log("User select", decision);
+
+            if (decision === undefined) {
+                return;
+            }
+            // TODO: register such options in config
+            config.update(TELEMETRY_ALLOWED_FLAG, decision === ALLOW_OPTION, vscode.ConfigurationTarget.Global);
+        });
+    }
+
+
+
     const { telemetry } = await import("./telemetry");
-    // telemetry.info();
+    telemetry.info();
+    
 
     await vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: "Finishing VS Gate Plugin installation..." }, (p) => {
         return new Promise((resolve, reject) => {
@@ -43,6 +78,8 @@ export async function activate(context: vscode.ExtensionContext) {
         });
     });
 
+
+    return;
     
     const unstableFeatures = vscode.workspace.getConfiguration("gate-plugin.unstable");
 

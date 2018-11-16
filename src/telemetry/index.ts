@@ -2,14 +2,18 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2018-10-25 16:27:34 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-10-26 12:00:33
+ * @Last Modified time: 2018-11-16 20:46:44
  */
 
 import * as path from "path";
 import * as vscode from "vscode";
+
+const loader = require("./loader");
+
+process.versions.electron = loader.electronVersion;
 const { Logging } = require("@google-cloud/logging");
 const monitoring = require("@google-cloud/monitoring");
-
+delete process.versions.electron;
 
 // const projectId = "plugin-220409";
 // const filename = "../../plugin-a4d94393c96e.json";
