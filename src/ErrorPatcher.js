@@ -7,7 +7,9 @@ function ExtendableError(message, extra) {
     this.message = message;
     this.extra = extra;
 };
-  
+ExtendableError.captureStackTrace = RealError.captureStackTrace;
+
 require("util").inherits(ExtendableError, RealError);
 
 global.Error = ExtendableError;
+

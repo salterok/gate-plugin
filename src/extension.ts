@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-15 23:21:27 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-11-16 21:17:45
+ * @Last Modified time: 2018-12-12 19:46:23
  */
 
 // const moduleAlias = require("module-alias");
@@ -10,12 +10,8 @@
 // moduleAlias.addAlias("grpc", "@grpc/grpc-js");
 
 import * as vscode from "vscode";
-
-
-console.log("electron version:", process.versions.electron);
-console.log("process.versions", process.versions);
-
-
+import * as fs from "fs";
+import * as path from "path";
 
 process.on("unhandledRejection", function() {
     console.log("unhandledRejection", arguments)
@@ -42,7 +38,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // }
 
 
-    // in case telemetryEnabled = false user does not give an answer yet
+    // in case telemetryEnabled = undefined user does not give an answer yet
     if (telemetryEnabled === undefined) {
         const ALLOW_OPTION = "Allow for this extension";
         const userResponse = vscode.window.showInformationMessage("Some experimental features has been disabled as telemetry gathering disabled in your workspace " + telemetryEnabled, "Let it be", ALLOW_OPTION);
@@ -60,7 +56,17 @@ export async function activate(context: vscode.ExtensionContext) {
 
 
 
-    const { telemetry } = await import("./telemetry");
+    const { telemetry, setDefaultLabels } = await import("./telemetry");
+
+    const packageJSON = JSON.parse(fs.readFileSync(path.join(context.extensionPath, "package.json"), { encoding: "utf8" }));
+
+    setDefaultLabels({
+        machineId: vscode.env.machineId,
+        sessionId: vscode.env.sessionId,
+        version: packageJSON.version,
+    });
+
+
     telemetry.info();
     
 
@@ -77,9 +83,6 @@ export async function activate(context: vscode.ExtensionContext) {
             }, 1000);
         });
     });
-
-
-    return;
     
     const unstableFeatures = vscode.workspace.getConfiguration("gate-plugin.unstable");
 
