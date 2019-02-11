@@ -1,13 +1,24 @@
 /*
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-12 03:04:15 
- * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2018-07-16 22:53:51
+ * @Last Modified by: Sergiy Samborskiy
+ * @Last Modified time: 2019-02-10 15:28:11
  */
 
-import * as vscode from "vscode";
+import { Position, Range } from "vscode-languageserver";
 import { Token, ParserRuleContext } from "antlr4ts"
 import { NodeRange, NodePosition } from "./JapeSyntaxDefinitions";
+
+export function translate(position: Position, line: number, char: number) {
+    return Position.create(position.line + line, position.character + char);
+}
+
+export function using(position: Position, char: number | undefined, line: number | undefined) {
+    return Position.create(
+        typeof line === "number" ? line : position.line,
+        typeof char === "number" ? char : position.character, 
+    );
+}
 
 export class Place {
 
@@ -31,11 +42,11 @@ export class Place {
     }
 
     static toVsCodePosition(pos: NodePosition) {
-        return new vscode.Position(pos.line, pos.character);
+        return Position.create(pos.line, pos.character);
     }
 
-    static toVsCodeRange(range: NodeRange) {
-        return new vscode.Range(
+    static toVsCodeRange(range: NodeRange): Range {
+        return Range.create(
             Place.toVsCodePosition(range.start),
             Place.toVsCodePosition(range.end),
         );

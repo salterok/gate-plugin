@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-19 23:27:35 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-08-09 00:18:56
+ * @Last Modified time: 2019-02-06 10:31:33
  */
 
 import { JapeParserVisitor as IJapeParserVisitor } from "./parser/JapeParserVisitor";
@@ -10,7 +10,6 @@ import { AbstractParseTreeVisitor } from "antlr4ts";
 import * as P from "./parser/JapeParser";
 
 import * as D from "./JapeSyntaxDefinitions";
-import { Place } from "./utils";
 
 export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> implements IJapeParserVisitor<{} | undefined> {
 

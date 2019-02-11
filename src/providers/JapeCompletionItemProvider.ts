@@ -2,49 +2,62 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2018-08-08 23:45:29 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-09-27 20:21:01
+ * @Last Modified time: 2019-02-10 15:29:02
  */
 
-import * as vscode from "vscode";
-import { CompletionItemKind } from "vscode";
+import { CompletionItemKind, CompletionItem, TextDocument, Position, CancellationToken, CompletionContext, Range } from "vscode-languageserver";
 import * as _ from "lodash";
 
 import { JapeContext } from "../JapeContext";
 import { JapeLexer } from "../parser/JapeLexer";
-import { japeCtx } from "../VsCodeContext";
+import { translate } from "../utils";
 
-export class JapeCompletionItemProvider implements vscode.CompletionItemProvider {
+export class JapeCompletionItemProvider {
+
+    constructor(private japeCtx: JapeContext) {
+    }
+
     public provideCompletionItems(
-        document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken):
-        Thenable<vscode.CompletionItem[]> {
-            const char = document.getText(new vscode.Range(position.translate(0, -1), position));
+        document: TextDocument, position: Position, token: CancellationToken, context: CompletionContext | undefined):
+        Thenable<CompletionItem[]> {
+            const char = document.getText(Range.create(translate(position, 0, -1), position));
 
             console.log("input:", char);
             if (char === JapeContext.getLiteral(JapeLexer.ALIAS_SEPARATOR)) {
-                const rule = japeCtx.findRule(document.fileName, position.line);
+                const rule = this.japeCtx.findRule(document.uri, position.line);
                 if (rule) {
                     return Promise.resolve(
                         rule.block.aliases.map(
-                            a => new vscode.CompletionItem(a, CompletionItemKind.Reference)
+                            alias => {
+                                const item = CompletionItem.create(alias);
+                                item.kind = CompletionItemKind.Reference;
+                                return item;
+                            }
                         )
                     );
                 }
             }
             if (char === JapeContext.getLiteral(JapeLexer.ACCESSOR)) {
                 // TODO: check if looking into specific annotation in lhs or into label in rhs
-                const rule = japeCtx.findRule(document.fileName, position.line);
+                const rule = this.japeCtx.findRule(document.uri, position.line);
                 if (rule) {
-                    const token = japeCtx.getTokenBefore(document.fileName, document.offsetAt(position.translate(0, -1)), JapeLexer.IDENTIFIER);
+                    const token = this.japeCtx.getTokenBefore(document.uri, document.offsetAt(translate(position, 0, -1)), JapeLexer.IDENTIFIER);
 
                     if (!token) {
                         return null as any;
                     }
 
-                    const annotations = japeCtx.findAnnotations(token.text || "");
+                    const annotations = this.japeCtx.findAnnotations(token.text || "");
                     
                     return Promise.resolve(
                         _.flatten(annotations.map(
-                            a => a.features.map(f => new vscode.CompletionItem(f.name, CompletionItemKind.Field))
+                            a => a.features.map(
+                                feature => {
+                                    const item = CompletionItem.create(feature.name);
+                                    item.kind = CompletionItemKind.Field;
+                                    return item;
+                                }
+                            )
                         ))
                     );
                 }

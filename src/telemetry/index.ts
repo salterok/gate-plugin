@@ -2,23 +2,13 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2018-10-25 16:27:34 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-12-12 20:41:46
+ * @Last Modified time: 2019-02-11 22:37:09
  */
 
 import * as path from "path";
-import * as vscode from "vscode";
 
-const loader = require("./loader");
-
-const electronVersionMissing = process.versions.electron === undefined;
-if (electronVersionMissing) { // if electron version will be present in future versions do not patch it
-    process.versions.electron = loader.electronVersion;
-}
 const { Logging } = require("@google-cloud/logging");
 const monitoring = require("@google-cloud/monitoring");
-if (electronVersionMissing) {
-    delete process.versions.electron;
-}
 
 // const projectId = "plugin-220409";
 // const filename = "../../plugin-220409-88b39e530b83.json";
@@ -136,17 +126,7 @@ class Telemetry {
         });
 
     }
-
-    info() {
-        const data = {    
-            // dirname: __dirname,
-            // time: new Date(),
-            vscode: vscode.version,
-        }
-
-        this._sendLog(data);
-    }
-
+    
     private _sendLog(data: any) {
         // The metadata associated with the entry
         const metadata = {resource: {type: 'project'}, labels: {

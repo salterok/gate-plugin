@@ -26,16 +26,19 @@
         "@google-cloud/logging": "^4.0.1",
         "@google-cloud/monitoring": "^0.6.0",
         "antlr4ts": "^0.5.0-alpha.8565fd2b",
+        "glob": "^7.1.3",
         "lodash": "^4.17.10",
-        "node-abi": "^2.4.5"
+        "vscode": "^1.1.10",
+        "vscode-languageclient": "^5.2.1",
+        "vscode-languageserver": "^5.2.1"
     },
     "devDependencies": {
-        "antlr4ts-cli": "^0.4.0-canary.37504efa",
+        "@types/glob": "^7.1.1",
         "@types/lodash": "^4.14.116",
         "@types/node": "^9.4.6",
+        "antlr4ts-cli": "^0.4.0-canary.37504efa",
         "generator-code": "^1.1.25",
-        "typescript": "^2.7.2",
-        "vscode": "^1.1.10"
+        "typescript": "^2.7.2"
     },
     "categories": [
         "Programming Languages"
