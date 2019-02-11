@@ -2,7 +2,7 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2019-02-03 06:49:16 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-02-10 14:07:32
+ * @Last Modified time: 2019-02-12 00:13:35
  */
 import { IConnection, createConnection, TextDocuments, ProposedFeatures, InitializeParams } from "vscode-languageserver";
 
@@ -57,18 +57,6 @@ connection.onInitialized(a => {
     console.log("Initialized", a);
 })
 
-
-function validateTextDocument(doc: any) {
-    console.log("validateTextDoc:ument", doc);
-}
-
-// The content of a text document has changed. This event is emitted
-// when the text document first opened or when its content has changed.
-documents.onDidChangeContent((change) => {
-
-    validateTextDocument(change.document.uri);
-});
-
 connection.onDidChangeConfiguration((change) => {
 	let settings = <Settings>change.settings;
     console.log("onDidChangeConfiguration", settings);
@@ -119,8 +107,6 @@ async function initialize(settings: Settings) {
         // TODO: add language server version too
         host: process.env.editorHost,
     });
-
-    telemetry.test();
 
     const { activate } = await import("./languageServer");
 

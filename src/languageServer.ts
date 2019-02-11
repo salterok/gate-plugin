@@ -2,7 +2,7 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2019-02-06 10:34:37 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-02-10 16:08:30
+ * @Last Modified time: 2019-02-12 00:25:25
  */
 
 import { IConnection, TextDocuments, CancellationToken } from "vscode-languageserver";
@@ -18,6 +18,8 @@ export interface ExtensionSettings {
 
 export async function activate(config: ExtensionSettings, connection: IConnection, documents: TextDocuments) {
     const fileLoader = createDirectLoader();
+    const folders = await connection.workspace.getWorkspaceFolders();
+    (fileLoader as any).base = decodeURIComponent((folders && folders[0].uri) || "/").replace("file:///", "");
     const japeCtx = new JapeContext(fileLoader);
 
     // await (connection.window as any).withProgress({ location: vscode.ProgressLocation.Window, title: "Finishing VS Gate Plugin installation..." }, (p: any) => {
@@ -82,16 +84,14 @@ export async function activate(config: ExtensionSettings, connection: IConnectio
         });
     }
 
-    // if (unstableFeatures.get<boolean>("loadPipelines") === true) {
-    //     const activeTextEditor = vscode.window.activeTextEditor;
-    //     if (activeTextEditor) {
-    //         japeCtx.loadPipelines(activeTextEditor.document.fileName).catch(console.error);
-    //     }
-    // }
+    if (unstableFeatures.get<boolean>("loadPipelines") === true) {
+        japeCtx.loadPipelines().catch(console.error);
+    }
 
 
     documents.onDidChangeContent(e => {
         if (e.document.languageId === "jape" || e.document.uri.endsWith(".jape")) {
+            console.log("Change", e.document.version, e.document.uri);
             japeCtx.load(e.document.uri, e.document.version, e.document.getText());
         }
     });

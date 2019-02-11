@@ -2,7 +2,7 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2018-10-25 16:14:45 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-02-10 14:58:00
+ * @Last Modified time: 2019-02-12 00:42:41
  */
 
 const path = require("path");
@@ -15,7 +15,7 @@ const npm = process.platform == "win32" ? "npm.cmd" : "npm";
 
 function prepareTelemetry(telemetryAllowed) {
     try {
-        const { telemetry } = require("./telemetry");
+        const { telemetry } = require(".");
         return telemetry;
     }
     catch(err) {

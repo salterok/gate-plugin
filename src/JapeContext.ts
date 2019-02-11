@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-10-25 18:05:26
+ * @Last Modified time: 2019-02-12 00:41:03
  */
 
 import * as antlr4ts from "antlr4ts";
@@ -14,6 +14,7 @@ import { Module, SinglePhase, NodeRange, MultiPhase, Phase, Annotation } from ".
 import { JapeLexer } from "./parser/JapeLexer";
 import { JapeParser } from "./parser/JapeParser";
 import { TransducerPipeline } from "./TransducerPipeline";
+import { RecognitionException, Recognizer } from "antlr4ts";
 
 export class JapeContext {
 
@@ -34,7 +35,7 @@ export class JapeContext {
 
         try {
             console.time(`Parsing ${key}`);
-            const result = this.parse(source);
+            const result = this.parse(source, key);
 
             if (!module) {
                 module = {} as Module;
@@ -48,7 +49,7 @@ export class JapeContext {
             return module;
         }
         catch (err) {
-            console.error(key, err.message);
+            console.error(key, err.message || err);
         }
         finally {
             console.timeEnd(`Parsing ${key}`);
@@ -56,11 +57,24 @@ export class JapeContext {
 
     }
 
-    parse(source: string): Pick<Module, "phase" | "tokenStream"> {
+    parse(source: string, file: string): Pick<Module, "phase" | "tokenStream"> {
         const chars = new antlr4ts.ANTLRInputStream(source);
         const lexer = new JapeLexer(chars);
         const tokenStream = new antlr4ts.CommonTokenStream(lexer);
         const parser = new JapeParser(tokenStream);
+
+        parser.removeErrorListeners();
+        const basePath = (this.fileLoader as any).base;
+        parser.addErrorListener({
+            syntaxError(recognizer: Recognizer<any, any>,
+                offendingSymbol: any,
+                line: number,
+                charPositionInLine: number,
+                msg: string,
+                e: RecognitionException) {
+                    console.warn(`${msg.substr(0, 100)}\n|> ${basePath}/${file}:${line}:${charPositionInLine + 1}`);
+            }
+        });
 
         const tree = parser.program();
         const visitor = new JapeParserVisitor();
@@ -72,15 +86,13 @@ export class JapeContext {
         };
     }
 
-    async loadPipelines(initialFile: string) {
-        console.info(`loadPipelines`, initialFile);
-
+    async loadPipelines() {
         const { telemetry } = await import("./telemetry");
         // telemetry.info();
 
         const start = Date.now();
 
-        const files = [initialFile].concat(await this.fileLoader.allFiles("**/*.jape"));
+        const files = await this.fileLoader.allFiles("**/*.jape");
 
         const pipelines: TransducerPipeline[] = [];
         
