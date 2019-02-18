@@ -31,11 +31,11 @@ export function createDirectLoader() {
     return {
         async allFiles(globPattern: string): Promise<string[]> {
             return new Promise((resolve, reject) => {
-                glob(globPattern, (err, files) => {
+                glob(globPattern, { absolute: true }, (err, files) => {
                     if (err) {
                         return reject(err);
                     }
-                    return resolve(files)
+                    return resolve(files.map(f => "file:///" + f))
                 });
             });
         },
