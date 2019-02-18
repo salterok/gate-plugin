@@ -61,7 +61,7 @@ connection.onDidChangeConfiguration((change) => {
 	let settings = <Settings>change.settings;
     console.log("onDidChangeConfiguration", settings);
     
-    initialize(settings).catch((err: unknown) => console.error("Some error during initialization", err));
+    initialize(settings);
 });
 
 import { ExtensionSettings } from "./languageServer";

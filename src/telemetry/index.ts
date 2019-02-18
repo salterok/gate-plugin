@@ -6,9 +6,9 @@
  */
 
 import * as path from "path";
-
 const { Logging } = require("@google-cloud/logging");
 const monitoring = require("@google-cloud/monitoring");
+const { ErrorReporting } = require("@google-cloud/error-reporting");
 
 // const projectId = "plugin-220409";
 // const filename = "../../plugin-220409-88b39e530b83.json";
@@ -19,6 +19,24 @@ const filename = "../../gate-plugin-abb28134b06e.json";
 const logger = new Logging({
     projectId: projectId,
     keyFilename: path.resolve(__dirname, filename),
+});
+
+const errors = new ErrorReporting({
+    projectId: projectId,
+    keyFilename: path.resolve(__dirname, filename),
+    reportMode: "always",
+});
+
+process.on("uncaughtException", (e) => {
+    console.error("uncaught exception", e);
+    telemetry.error(e, () => {
+        process.exit(1);
+    });
+});
+
+process.on("unhandledRejection", reason => {
+    console.warn("Unhandled promise rejection: ", reason);
+    telemetry.error(reason);
 });
 
 let log = logger.log(`log1`);
@@ -73,7 +91,17 @@ var client = new monitoring.v3.MetricServiceClient({
 //     console.error("cant create custom metric", err);
 // });
 
-const baseLabels = {};
+const baseLabels = {
+};
+
+export interface PopulatedObject {
+    message?: string;
+    user?: string;
+    filePath?: string;
+    lineNumber?: number;
+    functionName?: string;
+    serviceContext?: {service?: string; version?: string;};
+}
 
 class Telemetry {
 
@@ -125,6 +153,13 @@ class Telemetry {
             stats,
         });
 
+    }
+
+    error(error: Error | string | PopulatedObject, cb?: Function) {
+        if (error instanceof Error) {
+            (error as any).user = (baseLabels as any).machineId;
+        }
+        errors.report(error, cb);
     }
     
     private _sendLog(data: any) {

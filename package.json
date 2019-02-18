@@ -23,6 +23,7 @@
         "test": "npm run compile && node ./node_modules/vscode/bin/test"
     },
     "dependencies": {
+        "@google-cloud/error-reporting": "^0.6.0",
         "@google-cloud/logging": "^4.0.1",
         "@google-cloud/monitoring": "^0.6.0",
         "antlr4ts": "^0.5.0-alpha.8565fd2b",

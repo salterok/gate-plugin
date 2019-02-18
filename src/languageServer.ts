@@ -11,6 +11,7 @@ import { createDirectLoader } from "./VsCodeContext";
 import { JapeContext } from "./JapeContext";
 import { JapeCompletionItemProvider, JapeDocumentSymbolProvider, JapeDefinitionProvider } from "./providers";
 import _ = require("lodash");
+import { telemetry } from "./telemetry";
 
 export interface ExtensionSettings {
 	unstable: {};
@@ -85,7 +86,7 @@ export async function activate(config: ExtensionSettings, connection: IConnectio
     }
 
     if (unstableFeatures.get<boolean>("loadPipelines") === true) {
-        japeCtx.loadPipelines().catch(console.error);
+        japeCtx.loadPipelines().catch(telemetry.error);
     }
 
 
