@@ -14,14 +14,22 @@
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
-            "args": ["--extensionDevelopmentPath=${workspaceRoot}", "--enable-proposed-api=SergiySamborskiy.gate-plugin", "--inspect-extensions=9333" ]
+            "args": ["--extensionDevelopmentPath=${workspaceRoot}", "--enable-proposed-api=SergiySamborskiy.gate-plugin", "--inspect-extensions=9333" ],
+            "showAsyncStacks": true,
+            "skipFiles": [
+                "<node_internals>/**/*.js"
+            ]
         },
         {
             "type": "node",
             "request": "attach",
             "name": "Attach to language server",
             "port": 6009,
-            "timeout": 15000
+            "timeout": 15000,
+            "showAsyncStacks": true,
+            "skipFiles": [
+                "<node_internals>/**/*.js"
+            ]
         },
     ],
     "compounds": [
