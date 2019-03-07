@@ -2,7 +2,7 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2018-07-17 14:15:40 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-02-11 22:35:26
+ * @Last Modified time: 2019-03-07 09:20:15
  */
 
 export function createVsCodeLoader() {
@@ -41,7 +41,7 @@ export function createDirectLoader() {
         },
         async load(file: string): Promise<{ version: number; text: string; } | null> {
             return new Promise((resolve) => {
-                fs.readFile(file, { encoding: "utf-8" }, (err, file) => {
+                fs.readFile(file.replace("file:///", ""), { encoding: "utf-8" }, (err, file) => {
                     if (err) {
                         return resolve(null);
                     }

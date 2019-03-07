@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-02-12 00:41:03
+ * @Last Modified time: 2019-03-07 09:32:01
  */
 
 import * as antlr4ts from "antlr4ts";
@@ -10,7 +10,7 @@ import * as path from "path";
 import * as _ from "lodash";
 
 import { JapeParserVisitor } from "./JapeParserVisitor";
-import { Module, SinglePhase, NodeRange, MultiPhase, Phase, Annotation } from "./JapeSyntaxDefinitions";
+import { Module, SinglePhase, NodeRange, MultiPhase, Phase, Annotation, Rule } from "./JapeSyntaxDefinitions";
 import { JapeLexer } from "./parser/JapeLexer";
 import { JapeParser } from "./parser/JapeParser";
 import { TransducerPipeline } from "./TransducerPipeline";
@@ -28,7 +28,7 @@ export class JapeContext {
 
     load(key: string, version: number, source: string) {
         console.log("Load", version, key);
-        let module = this.map.get(key);
+        let module = this._get(key);
         if (module && module.version === version) {
             return module;
         }
@@ -39,7 +39,7 @@ export class JapeContext {
 
             if (!module) {
                 module = {} as Module;
-                this.map.set(key, module);
+                this._set(key, module);
             }
 
             module.version = version;
@@ -133,7 +133,7 @@ export class JapeContext {
         
         for (const phaseName of module.phase.phaseNames) {
             const filePath = path.join(dirname, phaseName + ".jape");
-            let module = this.map.get(filePath);
+            let module = this._get(filePath);
 
             if (!module) {
                 const meta = await this.fileLoader.load(filePath);
@@ -160,7 +160,7 @@ export class JapeContext {
     }
 
     findRule(key: string, position: number) {
-        const tree = this._get(key);
+        const tree = this._getSinglePhase(key);
         if (!tree) {
             return undefined;
         }
@@ -178,7 +178,7 @@ export class JapeContext {
     }
 
     getTokenBefore(key: string, index: number, token: number) {
-        const module = this.map.get(key);
+        const module = this._get(key);
         if (!module) {
             return null;
         }
@@ -210,7 +210,7 @@ export class JapeContext {
     }
 
     getReference(key: string, name: string, context: "annotation" | "macro"): JapeSymbolReference | null {
-        const tree = this._get(key);
+        const tree = this._getSinglePhase(key);
         if (!tree) {
             return null;
         }
@@ -231,7 +231,7 @@ export class JapeContext {
     }
 
     getSymbols(key: string) {
-        const tree = this._get(key);
+        const tree = this._getSinglePhase(key);
         if (!tree) {
             return [];
         }
@@ -248,14 +248,21 @@ export class JapeContext {
     }
 
 
-    _get(key: string): SinglePhase | null {
-        const tree = this.map.get(key);
+    _getSinglePhase(key: string): SinglePhase | null {
+        const tree = this._get(key);
         if (tree && tree.phase instanceof SinglePhase) {
             return tree.phase;
         }
         return null;
     }
 
+    _get(key: string): Module<Phase> | undefined {
+        return this.map.get(decodeURIComponent(key));
+    }
+
+    _set(key: string, module: Module) {
+        this.map.set(decodeURIComponent(key), module);
+    }
 }
 
 
