@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-12 03:04:15 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-02-10 15:28:11
+ * @Last Modified time: 2019-03-13 00:16:13
  */
 
 import { Position, Range } from "vscode-languageserver";
@@ -18,6 +18,10 @@ export function using(position: Position, char: number | undefined, line: number
         typeof line === "number" ? line : position.line,
         typeof char === "number" ? char : position.character, 
     );
+}
+
+export function getWordRangeAtPosition(text: string, position: NodePosition, pattern?: string) {
+    throw new Error("not implemented");
 }
 
 export class Place {

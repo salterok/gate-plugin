@@ -2,7 +2,7 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2019-02-06 10:34:37 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-02-12 00:25:25
+ * @Last Modified time: 2019-03-07 09:35:51
  */
 
 import { IConnection, TextDocuments, CancellationToken } from "vscode-languageserver";
@@ -52,38 +52,35 @@ export async function activate(config: ExtensionSettings, connection: IConnectio
     
     const unstableFeatures = enchance(config.unstable as unknown);
 
-    if (unstableFeatures.get<boolean>("enableCompletions") === true) {
-        const completionProvider = new JapeCompletionItemProvider(japeCtx);
-        connection.onCompletion((params, token) => {
-            const document = documents.get(params.textDocument.uri);
-            if (!document) {
-                return;
-            }
-            return completionProvider.provideCompletionItems(document, params.position, token, params.context);
-        });
-    }
+    // enableCompletions
+    const completionProvider = new JapeCompletionItemProvider(japeCtx);
+    connection.onCompletion((params, token) => {
+        const document = documents.get(params.textDocument.uri);
+        if (!document) {
+            return;
+        }
+        return completionProvider.provideCompletionItems(document, params.position, token, params.context);
+    });
 
-    if (unstableFeatures.get<boolean>("enableSymbols") === true) {
-        const completionProvider = new JapeDocumentSymbolProvider(japeCtx);
-        connection.onDocumentSymbol((params, token) => {
-            const document = documents.get(params.textDocument.uri);
-            if (!document) {
-                return;
-            }
-            return completionProvider.provideDocumentSymbols(document, token);
-        });
-    }
+    // enableSymbols
+    const symbolsProvider = new JapeDocumentSymbolProvider(japeCtx);
+    connection.onDocumentSymbol((params, token) => {
+        const document = documents.get(params.textDocument.uri);
+        if (!document) {
+            return;
+        }
+        return symbolsProvider.provideDocumentSymbols(document, token);
+    });
 
-    if (unstableFeatures.get<boolean>("enableDefinitions") === true) {
-        const completionProvider = new JapeDefinitionProvider(japeCtx);
-        connection.onDefinition((params, token) => {
-            const document = documents.get(params.textDocument.uri);
-            if (!document) {
-                return;
-            }
-            return completionProvider.provideDefinition(document, params.position, token);
-        });
-    }
+    // enableDefinitions
+    const definitionProvider = new JapeDefinitionProvider(japeCtx);
+    connection.onDefinition((params, token) => {
+        const document = documents.get(params.textDocument.uri);
+        if (!document) {
+            return;
+        }
+        return definitionProvider.provideDefinition(document, params.position, token);
+    });
 
     if (unstableFeatures.get<boolean>("loadPipelines") === true) {
         japeCtx.loadPipelines().catch(telemetry.error);

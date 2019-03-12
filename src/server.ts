@@ -2,7 +2,7 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2019-02-03 06:49:16 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-02-12 00:13:35
+ * @Last Modified time: 2019-03-07 09:34:31
  */
 import { IConnection, createConnection, TextDocuments, ProposedFeatures, InitializeParams } from "vscode-languageserver";
 
@@ -48,7 +48,9 @@ connection.onInitialize((params: InitializeParams) => {
 			completionProvider: {
                 triggerCharacters: [".", ":"]
 				// resolveProvider: true
-			}
+            },
+            definitionProvider: true,
+            documentSymbolProvider: true,
 		}
 	};
 });

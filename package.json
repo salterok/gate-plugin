@@ -63,27 +63,6 @@
                                     false
                                 ],
                                 "default": false
-                            },
-                            "enableCompletions": {
-                                "enum": [
-                                    true,
-                                    false
-                                ],
-                                "default": false
-                            },
-                            "enableSymbols": {
-                                "enum": [
-                                    true,
-                                    false
-                                ],
-                                "default": false
-                            },
-                            "enableDefinitions": {
-                                "enum": [
-                                    true,
-                                    false
-                                ],
-                                "default": false
                             }
                         }
                     }
