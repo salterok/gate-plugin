@@ -2,7 +2,7 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2018-07-17 14:15:40 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-03-07 09:20:15
+ * @Last Modified time: 2019-05-28 15:31:33
  */
 
 export function createVsCodeLoader() {
@@ -27,6 +27,8 @@ export function createVsCodeLoader() {
 import * as fs from "fs";
 import * as glob from "glob";
 
+import { toUrl, toLocalPath } from "./utils";
+
 export function createDirectLoader() {
     return {
         async allFiles(globPattern: string): Promise<string[]> {
@@ -35,13 +37,13 @@ export function createDirectLoader() {
                     if (err) {
                         return reject(err);
                     }
-                    return resolve(files.map(f => "file:///" + f))
+                    return resolve(files.map(f => toUrl(f)))
                 });
             });
         },
         async load(file: string): Promise<{ version: number; text: string; } | null> {
             return new Promise((resolve) => {
-                fs.readFile(file.replace("file:///", ""), { encoding: "utf-8" }, (err, file) => {
+                fs.readFile(toLocalPath(file), { encoding: "utf-8" }, (err, file) => {
                     if (err) {
                         return resolve(null);
                     }

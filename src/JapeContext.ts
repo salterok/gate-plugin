@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-03-07 09:32:01
+ * @Last Modified time: 2019-05-28 16:53:56
  */
 
 import * as antlr4ts from "antlr4ts";
@@ -15,6 +15,7 @@ import { JapeLexer } from "./parser/JapeLexer";
 import { JapeParser } from "./parser/JapeParser";
 import { TransducerPipeline } from "./TransducerPipeline";
 import { RecognitionException, Recognizer } from "antlr4ts";
+import { toUrl, toLocalPath } from "./utils";
 
 export class JapeContext {
 
@@ -45,6 +46,7 @@ export class JapeContext {
             module.version = version;
             module.phase = result.phase;
             module.tokenStream = result.tokenStream;
+            module.filename = toUrl(key);
 
             return module;
         }
@@ -97,18 +99,8 @@ export class JapeContext {
         const pipelines: TransducerPipeline[] = [];
         
         for (const file of files) {
-            const meta = await this.fileLoader.load(file);
-            if (!meta) {
-                continue;
-            }
-            const module = this.load(file, meta.version, meta.text);
-
-            if (!module) {
-                continue;
-            }
-
-            if (module.phase instanceof MultiPhase) {
-                const pipeline = await this.createPipeline(file, module as Module<MultiPhase>);
+            const pipeline = await this.processAsModule(file);
+            if (pipeline) {
                 pipelines.push(pipeline);
             }
         }
@@ -129,34 +121,47 @@ export class JapeContext {
 
         pipeline = new TransducerPipeline(filename, module, this);
 
-        const dirname = path.dirname(filename);
+        const dirname = path.dirname(toLocalPath(filename));
         
         for (const phaseName of module.phase.phaseNames) {
             const filePath = path.join(dirname, phaseName + ".jape");
-            let module = this._get(filePath);
-
-            if (!module) {
-                const meta = await this.fileLoader.load(filePath);
-                if (meta) {
-                    module = this.load(filePath, meta.version, meta.text);
-                }
-            }
-            
-            if (!module) {
-                continue;
-            }
-
-            if (module.phase instanceof MultiPhase) {
-                const innerPipeline = await this.createPipeline(filePath, module as Module<MultiPhase>);
-                console.info(`Insert inner pipeline ${innerPipeline.module.phase.name} into ${phaseName} entry of ${pipeline.module.phase.name}`);
-                pipeline.addChild(phaseName, innerPipeline);
-            }
-            else {
-                pipeline.addChild(phaseName, module as Module<SinglePhase>);
-            }
+            await this.processAsModule(filePath, pipeline, phaseName);
         }
 
         return pipeline;
+    }
+    
+    async processAsModule(file: string, parentPipeline?: TransducerPipeline, phaseName?: string): Promise<TransducerPipeline | undefined> {
+        console.assert(Boolean(parentPipeline) === Boolean(phaseName), "Phase name and parent pipeline should be both provided or omitted");
+        let module = this._get(file);
+        if (module && module.version === 0) {
+            return;
+        }
+        const meta = await this.fileLoader.load(file);
+        if (!meta) {
+            return;
+        }
+        module = this.load(file, meta.version, meta.text);
+
+        if (!module) {
+            return;
+        }
+
+        if (module.phase instanceof MultiPhase) {
+            const innerPipeline = await this.createPipeline(file, module as Module<MultiPhase>);
+            if (parentPipeline) {
+                console.info(`Insert inner pipeline ${innerPipeline.module.phase.name} into ${phaseName} entry of ${parentPipeline.module.phase.name}`);
+                parentPipeline.addChild(phaseName!, innerPipeline);
+            }
+            else {
+                return innerPipeline;
+            }
+        }
+        else {
+            if (parentPipeline) {
+                parentPipeline.addChild(phaseName!, module as Module<SinglePhase>);
+            }
+        }
     }
 
     findRule(key: string, position: number) {
@@ -209,18 +214,30 @@ export class JapeContext {
         return annotations;
     }
 
-    getReference(key: string, name: string, context: "annotation" | "macro"): JapeSymbolReference | null {
+    getReference(key: string, name: string): JapeSymbolReference | null {
         const tree = this._getSinglePhase(key);
         if (!tree) {
             return null;
         }
 
-        if (context === "macro") {
-            const symbol = this.getSymbols(key).find(s => s.name === name);
+        let stopped = false;
+        if (this.pipeline) {
+            const symbols = this.pipeline.traverse(module => {
+                if (stopped) {
+                    return [];
+                }
+                if (module.filename === key) {
+                    stopped = true;
+                }
+                
+                return this.getSymbols(module.filename);
+            });
+
+            const symbol = _.flatten(symbols).find(s => s.name === name);
             if (!symbol) {
                 return null;
             }
-            return { name, refs: [{ key: key, range: symbol.range }] };
+            return { name, refs: [{ key: key, range: symbol.range, filename: symbol.filename }] };
         }
         
         const input = tree.inputs.find(i => i === name);
@@ -236,10 +253,26 @@ export class JapeContext {
             return [];
         }
 
-        return tree.macros.map(m => ({
-            name: m.name,
-            range: m.range,
-        }));
+        const annotations = [];
+        for (const rule of tree.rules) {
+            for (const annotation of rule.annotations) {
+                // TODO: provide annotation place instead of whole rule
+                annotations.push({
+                    name: annotation.name,
+                    range: rule.range,
+                    filename: key,
+                });
+            }
+        }
+
+        return [
+            ...tree.macros.map(m => ({
+                name: m.name,
+                range: m.range,
+                filename: key,
+            })),
+            ...annotations,
+        ];
     }
 
     static getLiteral(code: number) {
@@ -257,11 +290,11 @@ export class JapeContext {
     }
 
     _get(key: string): Module<Phase> | undefined {
-        return this.map.get(decodeURIComponent(key));
+        return this.map.get(toUrl(key));
     }
 
     _set(key: string, module: Module) {
-        this.map.set(decodeURIComponent(key), module);
+        this.map.set(toUrl(key), module);
     }
 }
 
@@ -272,6 +305,7 @@ export interface JapeSymbolReference {
     refs: {
         key: string;
         range: NodeRange;
+        filename: string;
     }[];
 }
 

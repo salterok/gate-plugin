@@ -2,11 +2,11 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2018-08-08 23:46:49 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-03-13 00:15:13
+ * @Last Modified time: 2019-05-28 16:47:48
  */
 
 import { Position, Range, Location, TextDocument, CancellationToken, SymbolInformation, SymbolKind, Definition } from "vscode-languageserver";
-import { Place, getWordRangeAtPosition } from "../utils";
+import { Place, getWordRangeAtPosition, toUrl as toUri } from "../utils";
 import { JapeContext } from "../JapeContext";
 
 export class JapeDefinitionProvider {
@@ -34,13 +34,13 @@ export class JapeDefinitionProvider {
             }
         }
 
-        const reference = this.japeCtx.getReference(document.uri, name, "macro");
+        const reference = this.japeCtx.getReference(toUri(document.uri), name);
         if (!reference) {
             return null;
         }
 
         const locations = reference.refs.map(ref => Location.create(
-            document.uri,
+            ref.filename,
             Place.toVsCodeRange(ref.range),
         ));
         return Promise.resolve(locations);

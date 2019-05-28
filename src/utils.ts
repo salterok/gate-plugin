@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-12 03:04:15 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-03-13 00:16:13
+ * @Last Modified time: 2019-05-28 14:33:31
  */
 
 import { Position, Range } from "vscode-languageserver";
@@ -55,4 +55,26 @@ export class Place {
             Place.toVsCodePosition(range.end),
         );
     }
+}
+
+
+import * as path from "path";
+import * as URL from "url";
+
+export function toUrl(filename: string) {
+    filename = decodeURIComponent(filename);
+    if (process.platform === "win32") {
+        if (filename.match(/^[a-z]:/i)) {
+            filename = "file:///" + filename;
+        }
+    }
+    const url = URL.parse(filename);
+    if (url.protocol !== "file:") { // TODO: support others protocols
+        return "file:///" + path.normalize(filename);
+    }
+    return url.protocol + "///" + path.normalize(url.path || "").replace(/^[\/\\]/i, "");
+}
+
+export function toLocalPath(filename: string) {
+    return (URL.parse(toUrl(filename)).path || "").replace(/^[\/\\]/i, "");
 }
