@@ -48,7 +48,7 @@ MACRO: 'Macro' { this._rhsMode = false; };
 PRIORITY: 'Priority';
 TEMPLATE: 'Template' { this._rhsMode = false; };
 
-INT: [1-9] [0-9]*;
+INT: [0-9]+;
 
 CONTEXT_OPERATORS
     : 'contains'
