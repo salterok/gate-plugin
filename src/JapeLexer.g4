@@ -66,7 +66,7 @@ STRING
     : '"' .*? '"'
     ;
 
-ASSIGNMENT: '=' { this._justHitAssignment = this._rhsMode; };
+ASSIGNMENT: '=' { this._justHitAssignment = true; };
 ACCESSOR: '.';
 VIRTUAL_ACCESSOR: '@';
 ENTRIES_SEPARATOR: ',';
@@ -76,21 +76,24 @@ GROUP_CLOSE: ')';
 RANGE_OPEN: '[';
 RANGE_CLOSE: ']';
 ALIAS_SEPARATOR: ':' {
+    this._justHitAssignment = false;
     if (this._multiPhase && this._phasesEntered) {
         this.mode(JapeLexer.MULTI_PHASE_MODE);
     };
 };
 RULE_ENTRY_OPEN: '{' {
     if (this._javaImports) {
-        this.pushMode(JapeLexer.JAVA_BLOCK_MODE)
+        this.pushMode(JapeLexer.JAVA_BLOCK_MODE);
+        this._javaImports = false;
     };
     if (this._rhsMode && !this._justHitAssignment) {
         this.pushMode(JapeLexer.JAVA_BLOCK_MODE)
-    };
-    this._javaImports = false;
+    };    
     this._justHitAssignment = false;
 };
-RULE_ENTRY_CLOSE: '}';
+RULE_ENTRY_CLOSE: '}' {
+    this._justHitAssignment = false;
+};
 RULE_KLEENE_OPERATOR: '?' | '*' | '+';
 
 COMPARE
