@@ -17,7 +17,8 @@
             "args": ["--extensionDevelopmentPath=${workspaceRoot}", "--enable-proposed-api=SergiySamborskiy.gate-plugin", "--inspect-extensions=9333" ],
             "showAsyncStacks": true,
             "skipFiles": [
-                "<node_internals>/**/*.js"
+                "<node_internals>/**/*.js",
+                "node_modules/**/*.js"
             ]
         },
         {
@@ -28,7 +29,8 @@
             "timeout": 15000,
             "showAsyncStacks": true,
             "skipFiles": [
-                "<node_internals>/**/*.js"
+                "<node_internals>/**/*.js",
+                "node_modules/**/*.js"
             ]
         },
     ],
