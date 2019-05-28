@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-05-28 16:59:43
+ * @Last Modified time: 2019-05-28 22:17:32
  */
 
 import * as antlr4ts from "antlr4ts";
@@ -66,7 +66,6 @@ export class JapeContext {
         const parser = new JapeParser(tokenStream);
 
         parser.removeErrorListeners();
-        const basePath = (this.fileLoader as any).base;
         parser.addErrorListener({
             syntaxError(recognizer: Recognizer<any, any>,
                 offendingSymbol: any,
@@ -74,7 +73,7 @@ export class JapeContext {
                 charPositionInLine: number,
                 msg: string,
                 e: RecognitionException) {
-                    console.warn(`${msg.substr(0, 100)}\n|> ${basePath}/${file}:${line}:${charPositionInLine + 1}`);
+                    console.warn(`${msg.substr(0, 100)}\n|> ${toLocalPath(file)}:${line}:${charPositionInLine + 1}`);
             }
         });
 
@@ -280,6 +279,9 @@ export class JapeContext {
         return literal && literal.substring(1, literal.length - 1);
     }
 
+    static getSymbolicName(code: number) {
+        return JapeLexer.VOCABULARY.getSymbolicName(code);
+    }
 
     _getSinglePhase(key: string): SinglePhase | null {
         const tree = this._get(key);

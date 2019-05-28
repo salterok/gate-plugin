@@ -2,7 +2,7 @@
  * @Author: Sergiy Samborskiy 
  * @Date: 2019-02-06 10:34:37 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-03-07 09:35:51
+ * @Last Modified time: 2019-05-28 22:17:36
  */
 
 import { IConnection, TextDocuments, CancellationToken } from "vscode-languageserver";
@@ -12,6 +12,7 @@ import { JapeContext } from "./JapeContext";
 import { JapeCompletionItemProvider, JapeDocumentSymbolProvider, JapeDefinitionProvider } from "./providers";
 import _ = require("lodash");
 import { telemetry } from "./telemetry";
+import { toLocalPath } from "./utils";
 
 export interface ExtensionSettings {
 	unstable: {};
@@ -90,9 +91,37 @@ export async function activate(config: ExtensionSettings, connection: IConnectio
     documents.onDidChangeContent(e => {
         if (e.document.languageId === "jape" || e.document.uri.endsWith(".jape")) {
             console.log("Change", e.document.version, e.document.uri);
-            japeCtx.load(e.document.uri, e.document.version, e.document.getText());
+            japeCtx.load(toLocalPath(e.document.uri), e.document.version, e.document.getText());
         }
     });
+
+
+    connection.onRequest("gate-plugin/display-lexer-output", getLexerOutput);
+
+    async function getLexerOutput(data: any) {
+        try {
+            console.log("bvppv", data);
+
+            const module = japeCtx._get(toLocalPath(data.filename));
+            if (!module) {
+                return;
+            }
+    
+            const tokens = module.tokenStream.getTokens();
+            return tokens
+                .filter(token => token.startIndex >= data.start && token.stopIndex <= data.end)
+                .map(token => {
+                    return {
+                        text: token.text,
+                        type: JapeContext.getSymbolicName(token.type),
+                    }
+                });
+        }
+        catch (err) {
+            console.error(err);
+            return;
+        }
+    }
 
     // documents.onDidOpen(e => {
     //     if (e.document.languageId === "jape" || e.document.uri.endsWith(".jape")) {

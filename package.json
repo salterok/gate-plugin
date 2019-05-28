@@ -49,6 +49,19 @@
     ],
     "main": "./out/extension",
     "contributes": {
+        "commands":[
+            {
+                "command": "gate-plugin/display-lexer-output",
+                "title": "Lexer output"
+            }
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "command": "gate-plugin/display-lexer-output"
+                }
+            ]
+        },
         "configuration": [
             {
                 "type": "object",
