@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-05-28 16:53:56
+ * @Last Modified time: 2019-05-28 16:59:43
  */
 
 import * as antlr4ts from "antlr4ts";
@@ -222,7 +222,7 @@ export class JapeContext {
 
         let stopped = false;
         if (this.pipeline) {
-            const symbols = this.pipeline.traverse(module => {
+            const allSymbols = this.pipeline.traverse(module => {
                 if (stopped) {
                     return [];
                 }
@@ -233,11 +233,11 @@ export class JapeContext {
                 return this.getSymbols(module.filename);
             });
 
-            const symbol = _.flatten(symbols).find(s => s.name === name);
-            if (!symbol) {
+            const symbols = _.flatten(allSymbols).filter(s => s.name === name);
+            if (allSymbols.length === 0) {
                 return null;
             }
-            return { name, refs: [{ key: key, range: symbol.range, filename: symbol.filename }] };
+            return { name, refs: symbols.map(symbol => ({ key: key, range: symbol.range, filename: symbol.filename })) };
         }
         
         const input = tree.inputs.find(i => i === name);
