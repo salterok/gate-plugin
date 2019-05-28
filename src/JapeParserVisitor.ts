@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-19 23:27:35 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-02-06 10:31:33
+ * @Last Modified time: 2019-05-28 15:31:04
  */
 
 import { JapeParserVisitor as IJapeParserVisitor } from "./parser/JapeParserVisitor";
@@ -61,9 +61,15 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
             phase.inputs = [];
         }
 
-        const optionsDeclCtx = ctx.optionsDecl();
-        if (optionsDeclCtx) {
-            phase.options = this.visitOptionsDecl(optionsDeclCtx);
+        phase.templates = [];
+        for (const decl of ctx.templateDecl()) {
+            const template = this.visitTemplateDecl(decl);
+            phase.templates.push(template);
+        }
+
+        for (const decl of ctx.optionsDecl()) {
+            const options = this.visitOptionsDecl(decl);
+            phase.options = options;
         }
         
         phase.macros = ctx.macroDecl().map(macroCtx => this.visitMacroDecl(macroCtx));
@@ -91,6 +97,15 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
             }
         }
         return options;
+    }
+
+    visitTemplateDecl(ctx: P.TemplateDeclContext): D.PhaseTemplate {
+        const template = new D.PhaseTemplate();
+
+        template.name = ctx.IDENTIFIER().text;
+        template.value = ctx.refValue().text;
+        
+        return template;
     }
 
     visitMacroDecl(ctx: P.MacroDeclContext): D.Rule {
@@ -164,7 +179,7 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
 
     visitRuleClause(ctx: P.RuleClauseContext): D.RuleClause {
         const compare = ctx.COMPARE();
-        const value = ctx.value();
+        const value = ctx.refValue();
         return new D.RuleClause({
             path: ctx.IDENTIFIER().map(node => node.text),
             operation: compare && compare.text,

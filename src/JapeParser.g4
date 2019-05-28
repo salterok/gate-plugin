@@ -28,7 +28,7 @@ singlePhase:
     importsDecl?
     phaseDecl
     (inputDecl)*
-    optionsDecl?
+    (optionsDecl | templateDecl)*
     (ruleDecl|macroDecl)*
     ;
 
@@ -43,6 +43,9 @@ phaseDecl:
 
 optionsDecl:
     OPTIONS ALIAS_SEPARATOR (IDENTIFIER ASSIGNMENT IDENTIFIER)+;
+
+templateDecl:
+    TEMPLATE ALIAS_SEPARATOR IDENTIFIER ASSIGNMENT refValue;
 
 // -------------------- MACRO --------------------------
 // TODO: check if macro can have priority, seems like can't
@@ -90,7 +93,7 @@ ruleEntry
 ruleClause
     : IDENTIFIER
     | IDENTIFIER CONTEXT_OPERATORS IDENTIFIER
-    | IDENTIFIER (ACCESSOR|VIRTUAL_ACCESSOR) IDENTIFIER COMPARE value 
+    | IDENTIFIER (ACCESSOR|VIRTUAL_ACCESSOR) IDENTIFIER COMPARE refValue 
     ;
 
 // -------------------- RHS --------------------------
@@ -120,10 +123,16 @@ japeRhsAnnotationField
 japeRhsAnnotationFieldValue
     : 
     | ALIAS_SEPARATOR IDENTIFIER ACCESSOR IDENTIFIER (ACCESSOR|VIRTUAL_ACCESSOR) IDENTIFIER
-    | value
+    | refValue
     ;
 
 // -------------------- BASIC -------------------------
+
+refValue
+    : value
+    | RANGE_OPEN IDENTIFIER (IDENTIFIER ASSIGNMENT refValue)* RANGE_CLOSE
+    ;
+
 value
     : IDENTIFIER
     | STRING

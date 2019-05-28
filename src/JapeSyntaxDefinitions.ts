@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-04-01 23:50:26 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2018-07-17 14:51:32
+ * @Last Modified time: 2019-05-27 18:18:04
  */
 
 import { ParserRuleContext, CommonTokenStream } from "antlr4ts";
@@ -32,6 +32,7 @@ export class SinglePhase {
     name!: string;
     inputs!: string[];
     options!: PhaseOptions;
+    templates!: PhaseTemplate[];
 
     macros!: Rule[];
     rules!: Rule[];
@@ -44,6 +45,11 @@ export type Phase = SinglePhase | MultiPhase;
 
 export class PhaseOptions extends Map<string, string> {
     
+}
+
+export class PhaseTemplate {
+    public name: string;
+    public value: string;
 }
 
 export class Rule extends SourceBlock {
