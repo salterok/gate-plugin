@@ -2,7 +2,7 @@
  * @Author: salterok 
  * @Date: 2018-02-19 23:27:35 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-05-28 15:31:04
+ * @Last Modified time: 2019-05-30 01:01:56
  */
 
 import { JapeParserVisitor as IJapeParserVisitor } from "./parser/JapeParserVisitor";
@@ -179,6 +179,10 @@ export class JapeParserVisitor extends AbstractParseTreeVisitor<D.Phase> impleme
 
     visitRuleClause(ctx: P.RuleClauseContext): D.RuleClause {
         const compare = ctx.COMPARE();
+
+        // TODO: handle context operations
+        const entry = ctx.ruleEntry();
+
         const value = ctx.refValue();
         return new D.RuleClause({
             path: ctx.IDENTIFIER().map(node => node.text),

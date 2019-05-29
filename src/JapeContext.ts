@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-05-28 23:52:03
+ * @Last Modified time: 2019-05-30 00:53:10
  */
 
 import * as antlr4ts from "antlr4ts";
@@ -28,14 +28,14 @@ export class JapeContext {
     }
 
     load(key: string, version: number, source: string) {
-        console.log("Load", version, key);
+        // console.debug("Load", version, key);
         let module = this._get(key);
         if (module && module.version === version) {
             return module;
         }
 
         try {
-            console.time(`Parsing ${key}`);
+            // console.time(`Parsing ${key}`);
             const result = this.parse(source, key);
 
             if (!module) {
@@ -54,7 +54,7 @@ export class JapeContext {
             console.error(key, err.message || err);
         }
         finally {
-            console.timeEnd(`Parsing ${key}`);
+            // console.timeEnd(`Parsing ${key}`);
         }
 
     }
