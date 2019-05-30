@@ -15,7 +15,9 @@ private exitOnCloseBracketMatch() {
     if (this._curlyBraceOpenCnt > 0) {
         this.more();
         this._curlyBraceOpenCnt--;
-        return;
+        if (this._curlyBraceOpenCnt > 0) {
+            return;
+        }
     }
     this._curlyBraceOpenCnt = 0;
     this._input.seek(this.inputStream.index - 1);

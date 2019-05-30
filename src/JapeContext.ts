@@ -2,7 +2,7 @@
  * @Author: mikey.zhaopeng 
  * @Date: 2018-07-05 00:18:32 
  * @Last Modified by: Sergiy Samborskiy
- * @Last Modified time: 2019-05-30 00:53:10
+ * @Last Modified time: 2019-05-30 10:51:01
  */
 
 import * as antlr4ts from "antlr4ts";
@@ -64,10 +64,13 @@ export class JapeContext {
         const lexer = new JapeLexer(chars);
 
         // for debug purpose
-        // lexer.action = function action_wrapper(this: any/* this: JapeLexer */) {
-        //     Object.getPrototypeOf(this).action.apply(this, arguments);
-        //     console.log(_.padEnd(this.text, 6), "\t", { justHitAssignment: this._justHitAssignment, openCnt: this._curlyBraceOpenCnt, rhsMode: this._rhsMode });
-        // }.bind(lexer);
+        lexer.action = function action_wrapper(this: any/* this: JapeLexer */) {
+            Object.getPrototypeOf(this).action.apply(this, arguments);
+            
+            console.log(
+                _.padEnd("[" + this.line, 5) + ", " + _.padEnd(this.charPositionInLine + "]", 4) + "\t" +
+                _.padEnd(this.text, 6), "\t", { justHitAssignment: this._justHitAssignment, openCnt: this._curlyBraceOpenCnt, rhsMode: this._rhsMode, javaMode: this.modeNames[this._mode] });
+        }.bind(lexer);
 
         const tokenStream = new antlr4ts.CommonTokenStream(lexer);
         const parser = new JapeParser(tokenStream);
