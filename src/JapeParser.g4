@@ -91,9 +91,9 @@ ruleEntry
     ;
 
 ruleClause
-    : IDENTIFIER
+    : NEGATION? IDENTIFIER
     | IDENTIFIER CONTEXT_OPERATORS (ruleEntry|IDENTIFIER)
-    | IDENTIFIER (ACCESSOR|VIRTUAL_ACCESSOR) IDENTIFIER COMPARE refValue 
+    | NEGATION? IDENTIFIER (ACCESSOR|VIRTUAL_ACCESSOR) IDENTIFIER COMPARE refValue 
     ;
 
 // -------------------- RHS --------------------------
