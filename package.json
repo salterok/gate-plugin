@@ -24,7 +24,7 @@
     },
     "dependencies": {
         "antlr4ts": "^0.5.0-alpha.8565fd2b",
-        "lodash": "^4.17.10"
+        "lodash": "^4.17.13"
     },
     "devDependencies": {
         "antlr4ts-cli": "^0.4.0-canary.37504efa",
